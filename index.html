@@ -193,9 +193,17 @@ input[type=text]:focus{outline:2px solid var(--amber);outline-offset:1px;border-
 .tray>button .caret{color:var(--muted);font-size:11px}
 .traybody{padding:0 13px 13px;display:none}
 .tray.open .traybody{display:block}
-.ngroup{margin-top:11px}
+.ngroup{margin-top:7px;border:1px solid var(--line-soft);border-radius:2px;background:rgba(0,0,0,.16);overflow:hidden}
 .ngroup:first-child{margin-top:0}
-.ngroup h4{margin:0 0 6px;font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;color:var(--amber);font-weight:400}
+.ngroup .nzhead{width:100%;font:inherit;text-align:left;background:none;border:none;color:var(--text);
+  padding:9px 11px;cursor:pointer;display:flex;align-items:center;gap:9px}
+.ngroup .nzhead:hover{background:rgba(237,164,64,.05)}
+.ngroup .nzhead .k{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--muted)}
+.ngroup .nzhead .nzn{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--amber)}
+.ngroup .nzhead .caret{color:var(--muted);font-size:10px}
+.ngroup.open .nzhead{border-bottom:1px solid var(--line-soft)}
+.ngroup.open .nzhead .k,.ngroup.open .nzhead span:not(.nzn):not(.caret){color:var(--amber)}
+.ngroup .notes{padding:10px 12px 12px}
 .notes{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
 .notes li{font-size:13.5px;color:#c3d1da;border-left:2px solid var(--line);padding-left:10px;line-height:1.6}
 .notes .none{color:#6d7e8a;border:none;padding:0;font-size:13px}
@@ -761,7 +769,7 @@ var ZONES=[
 var LOCK_TOTAL=14;
 
 var S={zone:"z1",open:null,seen:{},solved:{},revealed:{},notes:[],items:[],
-  wrongs:0,hints:6,hintLv:{},start:Date.now(),done:false,seq:[],sw:{},trays:{},chains:{}};
+  wrongs:0,hints:6,hintLv:{},start:Date.now(),done:false,seq:[],sw:{},trays:{},chains:{},noteZone:null};
 function $(s){return document.querySelector(s)}
 function esc(t){return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
 function br(t){return esc(t).replace(/\n/g,"<br>")}
@@ -959,13 +967,19 @@ function renderLock(id){
 }
 
 function renderTrays(){
+  /* 방마다 아코디언으로 하나만 펼쳐진다 — 두 방의 단서를 동시에 펼쳐놓고
+     눈으로 대조하지 못하게 해, 값을 직접 기억하거나 적어야 조합이 된다. */
   var byZone={};
   S.notes.forEach(function(n){ (byZone[n.z]=byZone[n.z]||[]).push(n.t) });
   var nb="";
   ZONES.forEach(function(z){
     if(!byZone[z.name])return;
-    nb+='<div class="ngroup"><h4>'+z.num+' '+z.name+'</h4><ul class="notes">'
-     + byZone[z.name].map(function(t){return '<li>'+esc(t)+'</li>'}).join("")+'</ul></div>';
+    var open = S.noteZone===z.name;
+    nb+='<div class="ngroup'+(open?" open":"")+'"><button class="nzhead" data-nz="'+esc(z.name)+'">'
+     + '<span class="k">'+z.num+'</span><span>'+z.name+'</span>'
+     + '<span class="nzn">'+byZone[z.name].length+'</span><span class="caret">'+(open?"▲":"▼")+'</span></button>';
+    if(open) nb+='<ul class="notes">'+byZone[z.name].map(function(t){return '<li>'+esc(t)+'</li>'}).join("")+'</ul>';
+    nb+='</div>';
   });
   if(!nb)nb='<p class="notes none">아직 기록한 단서가 없다.</p>';
 
@@ -995,6 +1009,9 @@ function wire(){
   });
   Array.prototype.forEach.call(document.querySelectorAll("[data-tray] > button"),function(b){
     var id=b.parentNode.dataset.tray; if(id) b.onclick=function(){S.trays[id]=!S.trays[id];render()};
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-nz]"),function(b){
+    b.onclick=function(){ var zn=b.dataset.nz; S.noteZone = (S.noteZone===zn) ? null : zn; render(); };
   });
   var rb=$("#resetBtn"); if(rb)rb.onclick=function(){if(window.confirm("진행 상황을 지우고 처음부터 시작할까요?"))reset()};
 
@@ -1112,7 +1129,7 @@ function finish(){
 
 function reset(){
   S={zone:"z1",open:null,seen:{},solved:{},revealed:{},notes:[],items:[],
-    wrongs:0,hints:6,hintLv:{},start:Date.now(),done:false,seq:[],sw:{},trays:{},chains:{}};
+    wrongs:0,hints:6,hintLv:{},start:Date.now(),done:false,seq:[],sw:{},trays:{},chains:{},noteZone:null};
   render();tick();window.scrollTo({top:0,behavior:"smooth"});
 }
 
