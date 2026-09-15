@@ -48,7 +48,6 @@ body{margin:0;background:var(--ink);
 .pinbtn.on{color:#93a6b1}
 
 /* 표시등 끄기 — 조사 지점을 스스로 찾아야 한다 */
-.wrap[data-pins="off"] .scene .pin{display:none}
 .zones{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}
 @media(min-width:330px){.zones{grid-template-columns:repeat(4,1fr)}}
 @media(min-width:680px){.zones{grid-template-columns:repeat(8,1fr)}}
@@ -82,9 +81,10 @@ svg.scene{display:block;width:100%;height:auto}
 .scene .amber{fill:var(--amber)} .scene .cyan{fill:var(--cyan)}
 .scene .lbl{fill:#63757f;font-family:var(--mono);font-size:8.5px;letter-spacing:.12em}
 .scene .hot{fill:rgba(255,255,255,0);cursor:pointer;stroke:rgba(237,164,64,0);stroke-width:1.5;transition:fill .15s,stroke .15s}
-.scene .hot:hover{fill:rgba(237,164,64,.13);stroke:var(--amber)}
-.wrap[data-pins="off"] .scene .hot:hover{fill:rgba(237,164,64,.22);stroke-width:2}
-.scene .hot:focus-visible{fill:rgba(237,164,64,.13);stroke:var(--amber);outline:none}
+/* 아직 찾지 못한 지점은 호버해도 아무 반응이 없다 — 직접 눌러봐야 한다.
+   .known (한 번 찾았거나, 표시등을 켠 상태)만 호버 시 드러난다. */
+.scene .hot.known:hover{fill:rgba(237,164,64,.13);stroke:var(--amber)}
+.scene .hot.known:focus-visible{fill:rgba(237,164,64,.13);stroke:var(--amber);outline:none}
 .scene .pin{fill:var(--amber);animation:blip 2.2s ease-in-out infinite;pointer-events:none}
 .scene .pin.seen{fill:#4c5d69;animation:none;opacity:.7}
 .scene .pin.lock{fill:var(--cyan);animation:blip 1.6s ease-in-out infinite}
@@ -125,6 +125,15 @@ svg.scene{display:block;width:100%;height:auto}
 .reveal{margin-top:13px;padding:9px 12px;border-left:2px solid var(--violet);background:rgba(168,107,181,.09);font-size:13px;color:#cfb0d8}
 
 .lockbox{margin-top:16px;border-top:1px solid var(--line-soft);padding-top:15px}
+.cluebox{margin:12px 0 4px;border:1px solid var(--line-soft);border-radius:2px;background:rgba(0,0,0,.18);padding:11px 13px}
+.cluehead{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:var(--muted)}
+.cluehead b{color:var(--cyan);font-weight:600}
+.cluelist{list-style:none;margin:9px 0 0;padding:0;display:flex;flex-direction:column;gap:7px}
+.cluelist li{font-size:13px;line-height:1.55;padding-left:11px;border-left:2px solid var(--line)}
+.cluelist li.got{color:#c3d1da;border-left-color:var(--cyan)}
+.cluelist li.got em{font-style:normal;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--cyan);display:block;margin-bottom:2px}
+.cluelist li.todo{color:#8d7550;border-left-color:var(--amber-deep);border-left-style:dashed}
+.cluelist li.todo em{font-style:normal;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--amber);margin-right:6px}
 .lockhead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .lockhead h3{margin:0;font-size:15px;font-weight:600;color:var(--amber)}
 .lockhead span{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.1em}
@@ -210,7 +219,7 @@ footer{margin-top:28px;font-family:var(--mono);font-size:10px;letter-spacing:.14
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 
-<div class="wrap" id="wrap" data-pins="on">
+<div class="wrap" id="wrap" data-pins="off">
   <div class="hud">
     <div class="brand"><span class="lamp" aria-hidden="true"></span><span>SECTOR 7 · 봉쇄 D+2191</span></div>
     <div class="stat hot"><b id="clock">00:00</b><i>경과</i></div>
@@ -220,7 +229,7 @@ footer{margin-top:28px;font-family:var(--mono);font-size:10px;letter-spacing:.14
   </div>
   <div class="navbar">
     <div class="navhead"><span class="navlab">구역 이동</span>
-      <button class="pinbtn on" id="pinBtn" title="조사 지점 표시등을 켜고 끕니다"><span class="sw2"></span><span id="pinTxt">표시등 켬</span></button>
+      <button class="pinbtn" id="pinBtn" title="조사 지점을 미리 표시하는 쉬운 모드"><span class="sw2"></span><span id="pinTxt">표시등 끔</span></button>
     </div>
     <div class="zones" id="zones"></div>
   </div>
@@ -439,6 +448,7 @@ var ZONES=[
    {id:"cab",x:404,y:146,w:74,h:106,px:459,py:176,title:"철제 캐비닛",lock:"L1",
     text:"허리 높이의 철제 캐비닛. 문에 네 자리 키패드가 달려 있다."}],
   locks:{L1:{name:"캐비닛 키패드",sub:"4자리",type:"keypad",answer:"9173",ph:"네 자리",
+    clues:[{t:"사원 명찰 — 강윤 K-07 / 민하 M-13 / 이솔 L-29 / 정미르 J-41",z:"접수 로비"},{t:"야간 당직 순번 — 이솔 → 정미르 → 강윤 → 민하",z:"접수 로비"}],
     hints:["이 방에 숫자를 주는 단서와 순서를 주는 단서가 따로 있다.","명찰 번호의 끝자리만 쓴다. 나열 순서는 당직 순번표가 정한다.","이솔(9) 정미르(1) 강윤(7) 민하(3) → 9173"],
     solved:"캐비닛이 열린다. 안에는 출입카드 한 장, 그리고 구역 배치도.\n\n안쪽 문이 열리고 — 세 방향의 통로가 한꺼번에 드러난다. 생물동, 설비동, 관리동.\n어느 쪽부터 가든 상관없다. 다만 한 방만 봐서는 아무것도 열리지 않을 것이다.",
     items:["출입카드","구역 배치도"],
@@ -493,10 +503,12 @@ var ZONES=[
   locks:{
    L2:{name:"샘플 금고",sub:"색 버튼 4개",type:"sequence",answer:["v","r","c","a"],
     colors:[{k:"c",label:"청록",hex:"#5ad0c0"},{k:"v",label:"자주",hex:"#a86bb5"},{k:"a",label:"호박",hex:"#eda440"},{k:"r",label:"진홍",hex:"#e2635a"}],
+    clues:[{t:"배양접시 — 청록 D+12 / 자주 D+5 / 호박 판독불가 / 진홍 판독불가",z:"저온 생물실"},{t:"인쇄 백업 로그 — 배양 등록: 호박 D+21 / 진홍 D+9 · 2019-11-08 04:28 격리 프로토콜 발동",z:"서버실"},{t:"화이트보드 — 샘플 회수 순서는 소장 결재본을 따를 것",z:"저온 생물실"},{t:"결재판 — 회수는 배양 일수가 적은 것부터 / 격리실 코드는 변환값을 뒤에서부터",z:"소장실"}],
     hints:["이 방만으로는 풀 수 없다. 읽히지 않는 일수와, 어떤 순서로 누를지가 둘 다 밖에 있다.","호박·진홍의 일수는 서버실의 인쇄 백업 로그에, 회수 순서 규칙은 소장실 결재판에 있다.","자주(5) → 진홍(9) → 청록(12) → 호박(21)"],
     solved:"잠금이 풀린다. 안에는 방수 손전등과 격리실 열쇠.\n서쪽 격리실 문이 열렸다.",
     items:["손전등","격리실 열쇠"],opens:["z3"]},
    L3:{name:"배관 분기점",sub:"4자리",type:"keypad",answer:"7831",ph:"네 자리",
+    clues:[{t:"배관표 — 청:밸브3/제어반A · 적:밸브7/제어반B · 황:밸브?/제어반C · 녹:밸브8/제어반D",z:"저온 생물실"},{t:"냉각 도면 — 개방 순서 황→청→녹→적 / 분기점은 그 역순",z:"배양 격리실"},{t:"정비 기록 — 황색관 밸브 1번 교체 완료 · 게이지 교정 보정치 0.10",z:"기계실"}],
     hints:["배관표에 번호 하나가 지워져 있다. 그 번호는 기계실에 기록이 남아 있다.","격리실 도면이 개방 순서를 주고, 분기점은 그 '역순'이라고 적혀 있다. 색을 밸브 번호로 바꿔라.","역순 = 적(7) 녹(8) 청(3) 황(1) → 7831"],
     solved:"분기점 덮개가 열린다. 안쪽 금속판에 계통 인증값이 각인되어 있다.\n\n생물 계통 인증값 — 47",
     note:"생물 계통 인증값 — 47",chain:"bio"}}},
@@ -523,6 +535,7 @@ var ZONES=[
    {id:"locker",x:468,y:78,w:84,h:94,px:544,py:84,title:"보관함",lock:"L4",
     text:"작은 철제 보관함. 네 자리 키패드. 라벨에 「배양 프로토콜」."}],
   locks:{L4:{name:"보관함 키패드",sub:"4자리",type:"keypad",answer:"7854",ph:"네 자리",
+    clues:[{t:"격리실 암호문 — S E R A (서가 색인으로 변환, 배열은 결재본 뒷장)",z:"배양 격리실"},{t:"서가 색인표 — A7 C2 E5 H9 L3 M6 N0 R8 S4 T1",z:"기록보관소"},{t:"결재판 — 회수는 배양 일수가 적은 것부터 / 격리실 코드는 변환값을 뒤에서부터",z:"소장실"}],
     hints:["알파벳을 숫자로 바꾸는 표도, 자리를 배열하는 규칙도 이 방에 없다.","기록보관소 벽의 서가 색인표로 SERA를 숫자로 바꾸고, 소장실 결재판 뒷장의 배열 지시를 적용한다.","S4 E5 R8 A7 → 뒤에서부터 = 7854"],
     solved:"보관함이 열린다. 안에는 접힌 냉각 계통 도면.\n\n「밸브 개방 순서 — 황 → 청 → 녹 → 적」\n「분기점 해제 코드는 위 순서의 역순으로 읽는다.」\n「냉각 배관은 저온 생물실 3호 냉동고 뒤에서 분기된다.」",
     note:"냉각 도면 — 개방 순서 황→청→녹→적 / 분기점은 그 역순",
@@ -561,10 +574,12 @@ var ZONES=[
     text:"스위치 여덟 개. 라벨은 A1~A4, B1~B4. 전부 내려가 있다.\n라벨에는 번호만 있고 무슨 계통인지는 적혀 있지 않다."}],
   locks:{
    L5:{name:"배전반",sub:"스위치 8개",type:"switches",answerOn:["B3","B4"],
+    clues:[{t:"전원 안내문 — 봉쇄 중 냉각 계통 투입 금지(경보). 어느 라인이 냉각인지는 설비 대장 참조",z:"서버실"},{t:"설비 관리 대장 — A라인 = 냉각 펌프 / B라인 = 서버 랙",z:"소장실"},{t:"냉동고 노트 — B라인은 3·4번만 정상 (1·2번 소손) / 소장의 마지막 결재 = 격리 명령서",z:"저온 생물실"}],
     hints:["어느 라인이 서버인지, 그 라인에서 몇 번이 살아 있는지 — 둘 다 이 방에 없다.","소장실 설비 관리 대장이 A/B 라인의 정체를 알려 주고, 저온 생물실 냉동고 노트가 소손된 번호를 알려 준다.","B3·B4만 올린다. 나머지는 전부 내린 채로."],
     solved:"차단기 두 개가 물린다. 살아남은 계통만 전류를 받는다.\n랙 절반의 LED가 살아나고 콘솔에 빛이 들어온다.\n기계실 문의 전자 잠금이 풀렸고, 관제실 조명도 들어왔다.",
     opens:["z5","z8"],reexamine:"console"},
    L6:{name:"콘솔 로그인",sub:"4자리",type:"keypad",answer:"0609",ph:"네 자리",need:{lock:"L5"},
+    clues:[{t:"대출 대장 — 미반납: 이솔 L-29, 정미르 J-41 (민하는 반납완료) / 소장 사번 D-31 / 계정 비밀번호는 자녀 생일",z:"기록보관소"},{t:"액자 사진 뒷면 — 2014. 06. 09.",z:"소장실"}],
     hints:["소장 계정이다. 비밀번호가 무엇을 뜻하는지와, 실제 값이 서로 다른 방에 있다.","기록보관소 대출 대장에 계정 규칙이 적혀 있고, 소장실 액자 뒷면에 그 날짜가 있다.","2014년 6월 9일 → 0609"],
     solved:"로그인 성공. 마지막 로그가 그대로 남아 있다.\n\n2019-11-08  04:28   격리 프로토콜 발동\n2019-11-08  04:30   주전원 차단 — 전 구역 봉쇄\n2019-11-08  04:30   게이트 제어 이관: 관제실 수동 인증",
     note:"주전원이 차단된 시각 — 04:30"}}},
@@ -592,10 +607,12 @@ var ZONES=[
     text:"천장 점검구로 올라가는 사다리. 위쪽 해치는 바깥에서 봉인되어 있다.\n6년 전 누군가 여기로 나가려다 실패한 자국이 남아 있다."}],
   locks:{
    L7:{name:"계통 게이지",sub:"3자리",type:"keypad",answer:"086",ph:"세 자리",max:3,
+    clues:[{t:"격리실 압력 0.96 MPa — 기계실은 여기서 보정치를 뺀 값",z:"배양 격리실"},{t:"정비 기록 — 황색관 밸브 1번 교체 완료 · 게이지 교정 보정치 0.10",z:"기계실"}],
     hints:["빼야 할 값은 여기 있지만, 빼어질 값은 다른 방에 있다.","격리실 압력계가 0.96 MPa를 가리키고, 이 방 공구함의 정비 기록에 보정치 0.10이 있다.","0.96 − 0.10 = 0.86 → 086"],
     solved:"바늘이 천천히 올라가 0.86에서 멈춘다. 계통에 압력이 걸렸다.\n밸브 손잡이가 이제 물린다."},
    L8:{name:"밸브 제어반",sub:"손잡이 4개",type:"sequence",answer:["C","A","D","B"],
     colors:[{k:"A",label:"A",text:"A"},{k:"B",label:"B",text:"B"},{k:"C",label:"C",text:"C"},{k:"D",label:"D",text:"D"}],
+    clues:[{t:"냉각 도면 — 개방 순서 황→청→녹→적 / 분기점은 그 역순",z:"배양 격리실"},{t:"배관표 — 청:밸브3/제어반A · 적:밸브7/제어반B · 황:밸브?/제어반C · 녹:밸브8/제어반D",z:"저온 생물실"}],
     hints:["개방 순서는 색으로 적혀 있는데, 손잡이는 알파벳이다. 색과 알파벳을 잇는 표가 따로 있다.","격리실 도면이 황→청→녹→적 순서를 주고, 저온 생물실 배관표가 색마다 제어반 라벨을 지정한다.","황=C, 청=A, 녹=D, 적=B → C A D B"],
     solved:"네 밸브가 차례로 열리고, 배관이 낮게 울린다. 제어반 덮개가 튀어오르며 각인된 판이 드러난다.\n\n설비 계통 인증값 — 05",
     note:"설비 계통 인증값 — 05",chain:"fac"}}},
@@ -635,10 +652,12 @@ var ZONES=[
     text:"잠긴 서랍. 네 자리 번호키."}],
   locks:{
    L9:{name:"벽 금고 다이얼",sub:"4자리",type:"keypad",answer:"1108",ph:"네 자리",
+    clues:[{t:"금고 번호 = 소장이 마지막으로 서명한 날 (월일 네 자리)",z:"소장실"},{t:"냉동고 노트 — B라인은 3·4번만 정상 (1·2번 소손) / 소장의 마지막 결재 = 격리 명령서",z:"저온 생물실"},{t:"인쇄 백업 로그 — 배양 등록: 호박 D+21 / 진홍 D+9 · 2019-11-08 04:28 격리 프로토콜 발동",z:"서버실"}],
     hints:["결재판의 날짜란이 찢겨 있다. 그 날짜를 다른 경로로 알아내야 한다.","냉동고 노트가 '마지막 결재 = 격리 명령서'라고 알려 주고, 서버실 백업 로그에 격리 프로토콜 발동일이 찍혀 있다.","2019-11-08 → 월일 네 자리 1108"],
     solved:"다이얼이 걸리고 손잡이가 돌아간다. 봉인 스티커가 붙은 카드 한 장과 열쇠.\n\n「게이트 승인 코드 — 82」",
     note:"게이트 승인 코드 — 82 (게이트 앞 두 자리)",items:["기록보관소 열쇠"],opens:["z7"]},
    L10:{name:"책상 서랍",sub:"4자리",type:"keypad",answer:"3182",ph:"네 자리",
+    clues:[{t:"대출 대장 — 미반납: 이솔 L-29, 정미르 J-41 (민하는 반납완료) / 소장 사번 D-31 / 계정 비밀번호는 자녀 생일",z:"기록보관소"},{t:"게이트 승인 코드 — 82 (게이트 앞 두 자리)",z:"소장실"},{t:"마이크로필름 — 소장실 서랍 = 소장 사번 2자리 + 승인 코드 2자리",z:"기록보관소"}],
     hints:["서랍 번호는 두 조각으로 나뉘어 있다. 하나는 사람, 하나는 코드.","마이크로필름이 '소장 사번 + 승인 코드'라고 알려 준다. 소장 사번은 대출 대장에, 승인 코드는 이 방 금고에 있다.","소장 D-31 + 승인 코드 82 → 3182"],
     solved:"서랍 안쪽에 얇은 금속판 하나. 각인된 숫자.\n\n관리 계통 인증값 — 93",
     note:"관리 계통 인증값 — 93",chain:"adm"}}},
@@ -686,6 +705,7 @@ var ZONES=[
     text:"네 자리 번호키가 달린 캐비닛. 관리자만 열 수 있게 되어 있다."}],
   locks:{
    L11:{name:"보관 캐비닛",sub:"4자리",type:"keypad",answer:"2941",ph:"네 자리",
+    clues:[{t:"사원 명찰 — 강윤 K-07 / 민하 M-13 / 이솔 L-29 / 정미르 J-41",z:"접수 로비"},{t:"대출 대장 — 미반납: 이솔 L-29, 정미르 J-41 (민하는 반납완료) / 소장 사번 D-31 / 계정 비밀번호는 자녀 생일",z:"기록보관소"}],
     hints:["번호는 사번에서 나온다. 사번이 적힌 물건은 이 방에 없다.","접수 로비 명찰의 번호를 쓰되, 대출 대장에서 '미반납'인 사람만 골라 대장 순서대로.","이솔 29, 정미르 41 → 2941 (민하는 반납완료라 제외)"],
     solved:"캐비닛이 열린다. 안에는 예비 램프 모듈 하나.\n마이크로필름 리더에 끼울 수 있다.",items:["램프 모듈"]},
    L12:{name:"필름 판독",sub:"자동",type:"auto",
@@ -709,20 +729,20 @@ var ZONES=[
     need:{lock:"L13"},needMsg:"인증 패널이 먼저다. 게이트 키패드는 아직 죽어 있다."}],
   locks:{
    L13:{name:"인증 패널",sub:"6자리",type:"keypad",answer:"059347",ph:"여섯 자리",max:6,
+    clues:[{t:"구역 배치도 — 제1계통 설비 / 제2계통 관리 / 제3계통 생물",z:"접수 로비"},{t:"설비 계통 인증값 — 05",z:"기계실"},{t:"관리 계통 인증값 — 93",z:"소장실"},{t:"생물 계통 인증값 — 47",z:"저온 생물실"},{t:"관제 절차 — ① 3계통 인증값을 계통 번호 순으로 ② 게이트 수동 코드",z:"관제실"}],
     hints:["세 인증값은 각 계통의 마지막 자물쇠에서 나온다. 문제는 붙이는 순서다.","순서는 계통 이름이 아니라 계통 번호다. 접수 로비 캐비닛에서 나온 구역 배치도를 보라.","제1계통 설비(05) · 제2계통 관리(93) · 제3계통 생물(47) → 059347"],
     solved:"세 계통이 차례로 초록으로 바뀐다. 게이트 키패드에 전원이 들어왔다.",reexamine:"gate"},
    L14:{name:"게이트 수동 코드",sub:"4자리",type:"keypad",answer:"8230",ph:"네 자리",need:{lock:"L13"},
+    clues:[{t:"게이트 승인 코드 — 82 (게이트 앞 두 자리)",z:"소장실"},{t:"주전원이 차단된 시각 — 04:30",z:"서버실"},{t:"벽시계가 4시 30분에서 멈춤",z:"접수 로비"}],
     hints:["앞 두 자리와 뒤 두 자리의 출처가 다르다. 둘 다 이미 수첩에 있다.","앞은 소장 금고에서 나온 승인 코드. 뒤는 주전원이 차단된 시각의 '분'이다 — 접수 로비 벽시계와 서버 로그가 같은 시각을 가리킨다.","승인 코드 82 + 04:30의 분 30 → 8230"]}}}
 ];
 /* ==================== 상태 ==================== */
 var LOCK_TOTAL=14;
 
-/* 표시등 기본값 — 마우스가 있으면 끈다(훑으면 드러나므로).
-   터치 기기는 hover가 없어 훑을 수 없으므로 켜 둔다. */
-function defaultPins(){
-  try{ return window.matchMedia("(hover: hover) and (pointer: fine)").matches ? "off" : "on" }
-  catch(e){ return "on" }
-}
+/* 표시등 기본값 — 기기와 무관하게 항상 끈 채로 시작한다.
+   조사 지점은 찾아서 눌러야 드러나며, 방 그림 속 사물(라벨·가구)이 단서다.
+   '표시등 켬'은 원하는 사람만 쓰는 쉬운 모드다. */
+function defaultPins(){ return "off"; }
 function applyPins(){
   var wrap=document.getElementById("wrap"), b=document.getElementById("pinBtn");
   if(wrap) wrap.dataset.pins=S.pins;
@@ -800,11 +820,15 @@ function render(){
 
   var hots=spots.map(function(s){
     var seen=S.seen[z.id+":"+s.id];
+    /* 표시등이 꺼져 있으면(기본값) 아직 못 찾은 지점은 점도, 호버 반응도 없다.
+       한 번 찾고 나면 그 지점만 영구히 드러난다. */
+    var reveal = seen || S.pins==="on";
     var pc="pin"+(s.lock?(lockDone(s.lock)?" seen":" lock"):(seen?" seen":""));
     if(s.hidden&&!seen)pc="pin hid";
     var r=hitRect(s,spots);
-    return '<g><rect class="hot" tabindex="0" role="button" aria-label="'+(seen?s.title:"미조사 지점")+'" data-spot="'+s.id+'" x="'+r.x+'" y="'+r.y+'" width="'+r.w+'" height="'+r.h+'" rx="2"></rect>'
-     + '<circle class="'+pc+'" cx="'+s.px+'" cy="'+s.py+'" r="4.2"></circle></g>';
+    var dot = reveal ? '<circle class="'+pc+'" cx="'+s.px+'" cy="'+s.py+'" r="4.2"></circle>' : '';
+    return '<g><rect class="hot'+(reveal?" known":"")+'" tabindex="0" role="button" aria-label="'+(seen?s.title:"미조사 지점")+'" data-spot="'+s.id+'" x="'+r.x+'" y="'+r.y+'" width="'+r.w+'" height="'+r.h+'" rx="2"></rect>'
+     + dot + '</g>';
   }).join("");
   h+='<div class="sceneBox"><svg class="scene" viewBox="0 0 600 340" role="img" aria-label="'+z.name+'">'+z.art+'<g>'+hots+'</g></svg>'
    + '<div class="scanhint">'+(S.pins==="on"
@@ -856,6 +880,25 @@ function renderDetail(){
   return h;
 }
 
+/* 자물쇠가 필요로 하는 단서 현황 — 이미 찾은 것은 그대로 보여주고,
+   못 찾은 것은 내용을 숨긴 채 어느 구역에 있는지만 알려준다 */
+function renderClues(L){
+  if(!L.clues || !L.clues.length) return '';
+  var have=[], miss=[];
+  L.clues.forEach(function(c){
+    var got = S.notes.some(function(n){return n.t===c.t});
+    (got?have:miss).push(c);
+  });
+  var h='<div class="cluebox"><div class="cluehead">관련 단서 <b>'+have.length+'</b>/'+L.clues.length+' 확보</div><ul class="cluelist">';
+  have.forEach(function(c){ h+='<li class="got"><em>'+esc(c.z)+'</em>'+esc(c.t)+'</li>'; });
+  var missZones=[]; miss.forEach(function(c){ if(missZones.indexOf(c.z)<0) missZones.push(c.z); });
+  missZones.forEach(function(zn){
+    h+='<li class="todo"><em>미확보</em>'+esc(zn)+'에 더 있다 — 가서 찾아보라</li>';
+  });
+  h+='</ul></div>';
+  return h;
+}
+
 function renderLock(id){
   var z=curZ(),L=z.locks[id];
   if(!L)return '';
@@ -871,6 +914,7 @@ function renderLock(id){
      + '<div class="nothing" style="margin-top:9px">선행 장치가 아직 해제되지 않았다.</div></div>';
 
   var h='<div class="lockbox"><div class="lockhead"><h3>'+L.name+'</h3><span>'+(L.sub||"")+'</span></div>';
+  h+=renderClues(L);
   if(L.type==="keypad"){
     h+='<div class="answer"><input type="text" id="ans" inputmode="numeric" maxlength="'+(L.max||4)+'" placeholder="'+(L.ph||"입력")+'" autocomplete="off">'
      +'<button class="btn" id="submit">입력</button></div>';
