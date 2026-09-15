@@ -101,6 +101,8 @@ input[type=text]:focus{outline:2px solid var(--amber);outline-offset:1px;border-
 .seq{display:flex;gap:9px;margin-top:13px;flex-wrap:wrap}
 .cbtn{width:52px;height:52px;border-radius:2px;border:1px solid var(--line);cursor:pointer;background:#0b1217;display:grid;place-items:center;transition:transform .08s}
 .cbtn span{width:25px;height:25px;border-radius:50%;display:block}
+.cbtn .ctext{width:auto;height:auto;border-radius:0;font-family:var(--mono);font-size:19px;font-weight:600;color:#c3d1da;line-height:1}
+.cbtn:hover .ctext{color:var(--amber)}
 .cbtn:hover{transform:translateY(-2px)}
 .seqview{margin-top:11px;font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.1em;min-height:1.3em}
 .switchgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:13px;max-width:350px}
@@ -364,7 +366,7 @@ ART.control=`<rect class="wall" x="0" y="0" width="600" height="252" fill="#121a
 <rect class="obj2" x="404" y="150" width="16" height="30" rx="2"/><circle class="amber" id="gateLed" cx="412" cy="160" r="3" opacity=".35"/>
 <text class="lbl" x="424" y="268">BLAST GATE 07</text>`;
 
-/* ==================== 구역 데이터 ==================== */
+/* ==================== 구역 데이터 (교차 의존 개정판) ==================== */
 var ZONES=[
 { id:"z1", num:"01", name:"접수 로비", sys:"공용", art:ART.lobby, opens:true,
   flavor:"비상등 하나만 살아 있다. 6년 치 먼지가 데스크 위에 고르게 앉았다. 안쪽 문은 잠겼고, 옆의 철제 캐비닛에 네 자리 키패드가 붙어 있다.",
@@ -397,8 +399,8 @@ var ZONES=[
    {id:"cab",x:404,y:146,w:74,h:106,px:459,py:176,title:"철제 캐비닛",lock:"L1",
     text:"허리 높이의 철제 캐비닛. 문에 네 자리 키패드가 달려 있다."}],
   locks:{L1:{name:"캐비닛 키패드",sub:"4자리",type:"keypad",answer:"9173",ph:"네 자리",
-    hints:["이 방에는 숫자를 주는 단서와, 순서를 주는 단서가 따로 있다.","명찰에 적힌 번호의 끝자리만 쓴다. 나열 순서는 당직 순번표가 정한다.","이솔(9) 정미르(1) 강윤(7) 민하(3) → 9173"],
-    solved:"캐비닛이 열린다. 안에는 출입카드 한 장, 그리고 구역 배치도.\n\n안쪽 문이 열리고 — 세 방향의 통로가 한꺼번에 드러난다. 생물동, 설비동, 관리동.",
+    hints:["이 방에 숫자를 주는 단서와 순서를 주는 단서가 따로 있다.","명찰 번호의 끝자리만 쓴다. 나열 순서는 당직 순번표가 정한다.","이솔(9) 정미르(1) 강윤(7) 민하(3) → 9173"],
+    solved:"캐비닛이 열린다. 안에는 출입카드 한 장, 그리고 구역 배치도.\n\n안쪽 문이 열리고 — 세 방향의 통로가 한꺼번에 드러난다. 생물동, 설비동, 관리동.\n어느 쪽부터 가든 상관없다. 다만 한 방만 봐서는 아무것도 열리지 않을 것이다.",
     items:["출입카드","구역 배치도"],
     note:"구역 배치도 — 제1계통 설비 / 제2계통 관리 / 제3계통 생물",
     opens:["z2","z4","z6"]}}},
@@ -406,51 +408,56 @@ var ZONES=[
 { id:"z2", num:"02", name:"저온 생물실", sys:"생물", art:ART.cryo, need:{lock:"L1"},
   flavor:"차가운 공기가 아직 남아 있다. 냉동고 세 대 중 한 대만 소리를 낸다. 벽 안쪽 샘플 금고에는 숫자 대신 색 버튼 네 개가 달려 있다.",
   spots:[
-   {id:"wb",x:252,y:56,w:140,h:86,px:322,py:52,title:"화이트보드",
-    text:"거의 다 지워졌지만 마커가 눌린 자국이 남아 읽힌다.",
-    note:"샘플 금고 — 배양 일수가 적은 색부터 순서대로 누를 것",
-    art:`<svg viewBox="0 0 420 90"><rect x="20" y="6" width="380" height="76" rx="2" fill="#e7ecee" opacity=".08"/>
-     <text x="44" y="38" fill="#c3d1da" font-family="IBM Plex Sans KR, sans-serif" font-size="15">샘플 회수 — 배양 일수가</text>
-     <text x="44" y="64" fill="#eda440" font-family="IBM Plex Sans KR, sans-serif" font-size="15">적은 것부터 순서대로 누를 것</text></svg>`},
    {id:"shelf",x:250,y:164,w:150,h:42,px:325,py:160,title:"배양접시 선반",
-    text:"배양접시 넷. 라벨에 색 이름과 배양 일수가 적혀 있다.",
-    note:"배양접시 — 청록 D+12 / 자주 D+5 / 호박 D+21 / 진홍 D+9",
+    text:"배양접시 넷. 그런데 라벨 두 장이 성에에 젖어 일수가 번져 읽히지 않는다.\n색은 넷 다 남아 있다.",
+    note:"배양접시 — 청록 D+12 / 자주 D+5 / 호박 판독불가 / 진홍 판독불가",
     art:`<svg viewBox="0 0 420 116"><g font-family="IBM Plex Mono, monospace" font-size="14">
      <circle cx="62" cy="44" r="26" fill="#0e1a1e" stroke="#5ad0c0" stroke-width="2.5"/><circle cx="62" cy="44" r="13" fill="#5ad0c0" opacity=".22"/>
      <text x="40" y="92" fill="#5ad0c0">D+12</text><text x="42" y="110" fill="#8497a3" font-size="11">청록</text>
      <circle cx="162" cy="44" r="26" fill="#0e1a1e" stroke="#a86bb5" stroke-width="2.5"/><circle cx="162" cy="44" r="13" fill="#a86bb5" opacity=".22"/>
      <text x="145" y="92" fill="#a86bb5">D+5</text><text x="142" y="110" fill="#8497a3" font-size="11">자주</text>
      <circle cx="262" cy="44" r="26" fill="#0e1a1e" stroke="#eda440" stroke-width="2.5"/><circle cx="262" cy="44" r="13" fill="#eda440" opacity=".22"/>
-     <text x="240" y="92" fill="#eda440">D+21</text><text x="242" y="110" fill="#8497a3" font-size="11">호박</text>
+     <text x="240" y="92" fill="#6d7e8a">D+??</text><text x="242" y="110" fill="#8497a3" font-size="11">호박</text>
      <circle cx="362" cy="44" r="26" fill="#0e1a1e" stroke="#e2635a" stroke-width="2.5"/><circle cx="362" cy="44" r="13" fill="#e2635a" opacity=".22"/>
-     <text x="345" y="92" fill="#e2635a">D+9</text><text x="342" y="110" fill="#8497a3" font-size="11">진홍</text></g></svg>`},
+     <text x="343" y="92" fill="#6d7e8a">D+??</text><text x="342" y="110" fill="#8497a3" font-size="11">진홍</text></g>
+     <text x="40" y="20" fill="#e2635a" font-family="IBM Plex Sans KR, sans-serif" font-size="11">※ 라벨 2장 판독 불가 — 등록 기록 대조 필요</text></svg>`},
    {id:"frz",x:166,y:96,w:62,h:154,px:215,py:102,title:"3호 냉동고",
-    text:"셋 중 이것만 아직 돌아간다. 내부 -36℃. 성에 아래 노트 한 권이 얼어붙어 있다.\n펼쳐진 면의 볼펜 글씨:\n\n「게이트 코드는 소장이 쥐고 있다. 나는 절반만 안다.」",
-    note:"게이트 코드 — 소장이 절반을 쥐고 있다"},
+    text:"셋 중 이것만 아직 돌아간다. 내부 -36℃. 성에 아래 노트 한 권이 얼어붙어 있다.\n펼쳐진 면의 볼펜 글씨:\n\n「B라인 4계통 중 1·2번은 그날 소손됐다. 3·4번만 살아 있다.」\n「소장이 마지막으로 결재한 건 격리 명령서였다. 그게 전부다.」",
+    note:"냉동고 노트 — B라인은 3·4번만 정상 (1·2번 소손) / 소장의 마지막 결재 = 격리 명령서"},
+   {id:"wb",x:252,y:56,w:140,h:86,px:322,py:52,title:"화이트보드",
+    text:"거의 다 지워졌다. 남은 건 한 줄뿐.",
+    note:"화이트보드 — 샘플 회수 순서는 소장 결재본을 따를 것",
+    art:`<svg viewBox="0 0 420 80"><rect x="20" y="6" width="380" height="66" rx="2" fill="#e7ecee" opacity=".08"/>
+     <text x="44" y="46" fill="#eda440" font-family="IBM Plex Sans KR, sans-serif" font-size="15">회수 순서 — 소장 결재본을 따를 것</text></svg>`},
    {id:"sink",x:414,y:196,w:86,h:58,px:457,py:200,title:"싱크대",
     text:"배수구 안쪽에 깨진 유리가 걸려 있다. 6년 전 누가 급하게 무언가를 흘려보냈다.\n남은 건 없다."},
    {id:"safe",x:418,y:92,w:78,h:86,px:490,py:98,title:"샘플 금고",lock:"L2",
     text:"숫자 키패드 대신 색 버튼 넷. 순서대로 눌러야 열린다."},
    {id:"pipe",x:160,y:200,w:74,h:52,px:172,py:246,title:"냉동고 뒤 배관 분기점",hidden:true,lock:"L3",
-    text:"3호 냉동고를 밀어내자 벽에 배관 네 줄이 드러난다. 색마다 밸브 번호가 찍혀 있다.\n분기점 잠금장치는 네 자리.",
-    note:"냉각 배관 밸브 번호 — 청 3 / 적 7 / 황 1 / 녹 8",
-    art:`<svg viewBox="0 0 420 116"><g stroke-width="13" fill="none">
-     <path d="M20 26 H 400" stroke="#2f5766"/><path d="M20 52 H 400" stroke="#6a3e3a"/><path d="M20 78 H 400" stroke="#7a6a34"/><path d="M20 104 H 400" stroke="#3a5e44"/></g>
-     <g font-family="IBM Plex Mono, monospace" font-size="15" font-weight="600">
-     <rect x="180" y="16" width="30" height="20" rx="2" fill="#0b1217"/><text x="188" y="32" fill="#5aa8d0">3</text>
-     <rect x="180" y="42" width="30" height="20" rx="2" fill="#0b1217"/><text x="188" y="58" fill="#e2635a">7</text>
-     <rect x="180" y="68" width="30" height="20" rx="2" fill="#0b1217"/><text x="188" y="84" fill="#c9b355">1</text>
-     <rect x="180" y="94" width="30" height="20" rx="2" fill="#0b1217"/><text x="188" y="110" fill="#77c47f">8</text></g>
+    text:"3호 냉동고를 밀어내자 벽에 배관 네 줄이 드러난다.\n각 관에 밸브 번호와 제어반 위치가 찍혀 있다. 황색관 번호만 도색이 벗겨져 지워졌다.\n분기점 잠금장치는 네 자리.",
+    note:"배관표 — 청:밸브3/제어반A · 적:밸브7/제어반B · 황:밸브?/제어반C · 녹:밸브8/제어반D",
+    art:`<svg viewBox="0 0 420 124"><g stroke-width="13" fill="none">
+     <path d="M20 26 H 400" stroke="#2f5766"/><path d="M20 54 H 400" stroke="#6a3e3a"/><path d="M20 82 H 400" stroke="#7a6a34"/><path d="M20 110 H 400" stroke="#3a5e44"/></g>
+     <g font-family="IBM Plex Mono, monospace" font-size="14" font-weight="600">
+     <rect x="150" y="16" width="28" height="20" rx="2" fill="#0b1217"/><text x="157" y="32" fill="#5aa8d0">3</text>
+     <rect x="150" y="44" width="28" height="20" rx="2" fill="#0b1217"/><text x="157" y="60" fill="#e2635a">7</text>
+     <rect x="150" y="72" width="28" height="20" rx="2" fill="#0b1217"/><text x="156" y="88" fill="#6d7e8a">?</text>
+     <rect x="150" y="100" width="28" height="20" rx="2" fill="#0b1217"/><text x="157" y="116" fill="#77c47f">8</text>
+     <rect x="196" y="16" width="28" height="20" rx="2" fill="#0b1217"/><text x="203" y="32" fill="#c3d1da">A</text>
+     <rect x="196" y="44" width="28" height="20" rx="2" fill="#0b1217"/><text x="203" y="60" fill="#c3d1da">B</text>
+     <rect x="196" y="72" width="28" height="20" rx="2" fill="#0b1217"/><text x="203" y="88" fill="#c3d1da">C</text>
+     <rect x="196" y="100" width="28" height="20" rx="2" fill="#0b1217"/><text x="203" y="116" fill="#c3d1da">D</text></g>
      <g font-family="IBM Plex Sans KR, sans-serif" font-size="12" fill="#8497a3">
-     <text x="240" y="32">청색관</text><text x="240" y="58">적색관</text><text x="240" y="84">황색관</text><text x="240" y="110">녹색관</text></g></svg>`}],
+     <text x="244" y="32">청색관</text><text x="244" y="60">적색관</text><text x="244" y="88">황색관</text><text x="244" y="116">녹색관</text></g>
+     <g font-family="IBM Plex Mono, monospace" font-size="9" fill="#63757f"><text x="150" y="12">밸브</text><text x="196" y="12">제어반</text></g></svg>`}],
   locks:{
    L2:{name:"샘플 금고",sub:"색 버튼 4개",type:"sequence",answer:["v","r","c","a"],
     colors:[{k:"c",label:"청록",hex:"#5ad0c0"},{k:"v",label:"자주",hex:"#a86bb5"},{k:"a",label:"호박",hex:"#eda440"},{k:"r",label:"진홍",hex:"#e2635a"}],
-    hints:["이 방 안에 순서 규칙과 값이 모두 있다.","배양 일수가 가장 적은 접시가 첫 버튼이다.","자주(5) → 진홍(9) → 청록(12) → 호박(21)"],
+    hints:["이 방만으로는 풀 수 없다. 읽히지 않는 일수와, 어떤 순서로 누를지가 둘 다 밖에 있다.","호박·진홍의 일수는 서버실의 인쇄 백업 로그에, 회수 순서 규칙은 소장실 결재판에 있다.","자주(5) → 진홍(9) → 청록(12) → 호박(21)"],
     solved:"잠금이 풀린다. 안에는 방수 손전등과 격리실 열쇠.\n서쪽 격리실 문이 열렸다.",
     items:["손전등","격리실 열쇠"],opens:["z3"]},
-   L3:{name:"배관 분기점",sub:"4자리",type:"keypad",answer:"1387",ph:"네 자리",
-    hints:["번호는 여기 있다. 어떤 순서로 읽을지는 다른 방에서 찾아야 한다.","격리실 보관함에서 나온 냉각 계통 개방 순서를 그대로 따른다.","황(1) 청(3) 녹(8) 적(7) → 1387"],
+   L3:{name:"배관 분기점",sub:"4자리",type:"keypad",answer:"7831",ph:"네 자리",
+    hints:["배관표에 번호 하나가 지워져 있다. 그 번호는 기계실에 기록이 남아 있다.","격리실 도면이 개방 순서를 주고, 분기점은 그 '역순'이라고 적혀 있다. 색을 밸브 번호로 바꿔라.","역순 = 적(7) 녹(8) 청(3) 황(1) → 7831"],
     solved:"분기점 덮개가 열린다. 안쪽 금속판에 계통 인증값이 각인되어 있다.\n\n생물 계통 인증값 — 47",
     note:"생물 계통 인증값 — 47",chain:"bio"}}},
 
@@ -458,39 +465,50 @@ var ZONES=[
   flavor:"음압이 아직 걸려 있어 문이 무겁다. 배양기 안의 접시는 6년 전 그대로 말라붙었다. 벽의 압력계만 살아서 바늘을 붙들고 있다.",
   spots:[
    {id:"logdesk",x:330,y:158,w:118,h:94,px:389,py:154,title:"관찰 기록대",
-    text:"기록지 맨 아래에 연구원 글씨로 남은 한 줄. 알파벳 넉 자.\n그 아래: 「서가 색인으로 읽을 것.」",
-    note:"격리실 암호문 — S E R A (서가 색인으로 읽을 것)",
+    text:"기록지 맨 아래에 연구원 글씨로 남은 한 줄. 알파벳 넉 자.\n그 아래: 「서가 색인으로 읽을 것. 자리 배열은 결재본 뒷장에.」",
+    note:"격리실 암호문 — S E R A (서가 색인으로 변환, 배열은 결재본 뒷장)",
     art:`<svg viewBox="0 0 420 96"><rect x="50" y="6" width="320" height="84" rx="2" fill="#e7ecee" opacity=".1"/>
-     <text x="76" y="30" fill="#8497a3" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="2">배양 관찰 기록 — 최종</text>
-     <path d="M76 42 h180" stroke="#5d7580" stroke-width="1.4"/>
+     <text x="76" y="28" fill="#8497a3" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="2">배양 관찰 기록 — 최종</text>
+     <path d="M76 40 h180" stroke="#5d7580" stroke-width="1.4"/>
      <text x="76" y="72" fill="#eda440" font-family="IBM Plex Mono, monospace" font-size="26" letter-spacing="10">SERA</text>
-     <text x="250" y="72" fill="#6d7e8a" font-family="IBM Plex Sans KR, sans-serif" font-size="11">서가 색인으로 읽을 것</text></svg>`},
+     <text x="244" y="66" fill="#6d7e8a" font-family="IBM Plex Sans KR, sans-serif" font-size="10">서가 색인으로 읽을 것</text>
+     <text x="244" y="80" fill="#6d7e8a" font-family="IBM Plex Sans KR, sans-serif" font-size="10">배열은 결재본 뒷장에</text></svg>`},
    {id:"gauge",x:234,y:68,w:76,h:76,px:272,py:64,title:"압력계",
-    text:"바늘이 붉은 구간 직전에 멈춰 있다. 눈금판에 수기로 덧쓴 메모:\n\n「정상 복귀 시 기계실 게이지도 같은 값으로 맞출 것.」\n\n현재 표시: 0.86 MPa",
-    note:"격리실 압력 0.86 MPa — 기계실 게이지를 같은 값으로"},
+    text:"바늘이 붉은 구간 직전에 멈춰 있다. 눈금판에 수기로 덧쓴 메모:\n\n「기계실 게이지는 이 값에서 보정치를 뺀 값으로 맞출 것.」\n\n현재 표시: 0.96 MPa",
+    note:"격리실 압력 0.96 MPa — 기계실은 여기서 보정치를 뺀 값"},
    {id:"incu",x:46,y:82,w:150,h:168,px:180,py:88,title:"배양기",
     text:"유리문 안쪽에 접시 다섯 개. 내용물은 전부 말라 갈라졌다.\n선반 유리에 성에가 낀 자국만 남아 있고, 쓸 만한 건 없다."},
    {id:"bio",x:470,y:190,w:56,h:62,px:498,py:196,title:"폐기물통",
     text:"생물학적 위험 표시가 붙은 통. 뚜껑을 열자 밀봉된 봉투 몇 장뿐이다.\n전부 비어 있다."},
    {id:"locker",x:468,y:78,w:84,h:94,px:544,py:84,title:"보관함",lock:"L4",
     text:"작은 철제 보관함. 네 자리 키패드. 라벨에 「배양 프로토콜」."}],
-  locks:{L4:{name:"보관함 키패드",sub:"4자리",type:"keypad",answer:"4587",ph:"네 자리",
-    hints:["기록대의 알파벳 넉 자를 숫자로 바꿔야 한다. 변환표는 이 방에 없다.","기록보관소 벽의 서가 색인표가 알파벳마다 숫자를 지정한다.","S=4 E=5 R=8 A=7 → 4587"],
-    solved:"보관함이 열린다. 안에는 접힌 도면 한 장.\n\n「냉각 계통 개방 순서 — 황 → 청 → 녹 → 적」\n「냉각 배관은 저온 생물실 3호 냉동고 뒤에서 분기된다.」",
-    note:"냉각 계통 개방 순서 — 황 → 청 → 녹 → 적",
+  locks:{L4:{name:"보관함 키패드",sub:"4자리",type:"keypad",answer:"7854",ph:"네 자리",
+    hints:["알파벳을 숫자로 바꾸는 표도, 자리를 배열하는 규칙도 이 방에 없다.","기록보관소 벽의 서가 색인표로 SERA를 숫자로 바꾸고, 소장실 결재판 뒷장의 배열 지시를 적용한다.","S4 E5 R8 A7 → 뒤에서부터 = 7854"],
+    solved:"보관함이 열린다. 안에는 접힌 냉각 계통 도면.\n\n「밸브 개방 순서 — 황 → 청 → 녹 → 적」\n「분기점 해제 코드는 위 순서의 역순으로 읽는다.」\n「냉각 배관은 저온 생물실 3호 냉동고 뒤에서 분기된다.」",
+    note:"냉각 도면 — 개방 순서 황→청→녹→적 / 분기점은 그 역순",
     reveal:{zone:"z2",spot:"pipe"},
     revealMsg:"저온 생물실 3호 냉동고 뒤에 조사할 곳이 생겼다."}}},
 
 { id:"z4", num:"04", name:"서버실", sys:"설비", art:ART.server, need:{lock:"L1"},
   flavor:"완전한 암흑에 가깝다. 랙은 전부 죽었고 공기에서 탄 냄새가 난다. 벽의 배전반 스위치 여덟 개가 모두 내려가 있다.",
   spots:[
-   {id:"notice",x:398,y:70,w:76,h:56,px:436,py:66,title:"벽 안내문",
+   {id:"backup",x:262,y:133,w:76,h:23,px:300,py:131,title:"인쇄 백업 로그",
+    text:"패치패널 아래 걸린 클립보드. 전원이 끊기기 직전 자동 출력된 종이 로그다.\n전기가 없어도 이건 읽힌다.",
+    note:"인쇄 백업 로그 — 배양 등록: 호박 D+21 / 진홍 D+9 · 2019-11-08 04:28 격리 프로토콜 발동",
+    art:`<svg viewBox="0 0 420 116"><rect x="40" y="6" width="340" height="104" rx="2" fill="#e7ecee" opacity=".1"/>
+     <text x="62" y="28" fill="#8497a3" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="2">AUTO-PRINT / 최종 백업</text>
+     <path d="M62 36 h300" stroke="#5d7580" stroke-width="1"/>
+     <g font-family="IBM Plex Mono, monospace" font-size="13">
+     <text x="62" y="58" fill="#c3d1da">배양 등록  호박</text><text x="230" y="58" fill="#eda440">D+21</text>
+     <text x="62" y="78" fill="#c3d1da">배양 등록  진홍</text><text x="230" y="78" fill="#eda440">D+9</text>
+     <text x="62" y="100" fill="#c3d1da">2019-11-08 04:28</text><text x="230" y="100" fill="#e2635a">격리 프로토콜 발동</text></g></svg>`},
+   {id:"notice",x:386,y:66,w:82,h:60,px:427,py:62,title:"벽 안내문",
     text:"코팅된 안내문이 나사 두 개로 박혀 있다.",
-    note:"배전반 — 서버 계통은 B 라인. A 라인은 냉각 펌프, 투입 시 경보",
-    art:`<svg viewBox="0 0 420 106"><rect x="40" y="6" width="340" height="92" rx="2" fill="#cfd8dc" opacity=".09"/>
-     <text x="62" y="32" fill="#eda440" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="3">전원 계통 안내</text>
-     <text x="62" y="58" fill="#c3d1da" font-family="IBM Plex Sans KR, sans-serif" font-size="14">서버 계통 전원 = B 라인</text>
-     <text x="62" y="82" fill="#e2635a" font-family="IBM Plex Sans KR, sans-serif" font-size="14">A 라인은 냉각 펌프 — 투입 시 경보</text></svg>`},
+    note:"전원 안내문 — 봉쇄 중 냉각 계통 투입 금지(경보). 어느 라인이 냉각인지는 설비 대장 참조",
+    art:`<svg viewBox="0 0 420 112"><rect x="40" y="6" width="340" height="98" rx="2" fill="#cfd8dc" opacity=".09"/>
+     <text x="62" y="30" fill="#eda440" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="3">전원 계통 안내</text>
+     <text x="62" y="58" fill="#e2635a" font-family="IBM Plex Sans KR, sans-serif" font-size="14">봉쇄 중 냉각 계통 투입 금지 — 경보 작동</text>
+     <text x="62" y="84" fill="#c3d1da" font-family="IBM Plex Sans KR, sans-serif" font-size="13">라인별 계통 구분은 설비 관리 대장 참조</text></svg>`},
    {id:"patch",x:262,y:76,w:118,h:54,px:370,py:72,title:"패치패널",
     text:"포트 24개 중 3번 하나만 케이블이 꽂혀 있다. 라벨 테이프에 손글씨로 GATE-CTRL.\n게이트 제어는 관제실로 이어진다.",
     note:"게이트 제어는 관제실을 거친다"},
@@ -498,40 +516,47 @@ var ZONES=[
     text:"랙 두 대 모두 팬이 멈춰 있다. 뒷면 배선 다발이 바닥으로 흘러내렸다.\n손전등을 비춰 봐도 쓸 만한 건 없다."},
    {id:"console",x:266,y:158,w:110,h:92,px:321,py:154,title:"콘솔 모니터",lock:"L6",when:{lock:"L5"},
     text:"화면이 검다. 전원이 들어오지 않는다.",
-    text2:"화면이 살아났다. 로그인 프롬프트가 깜빡인다.\n\nUSER: director\nPASS: ____  (4자리)"},
+    text2:"화면이 살아났다. 로그인 프롬프트가 깜빡인다.\n\nUSER: director\nPASS: ____  (네 자리 · MMDD)"},
    {id:"brk",x:398,y:146,w:98,h:104,px:490,py:152,title:"배전반",lock:"L5",
-    text:"스위치 여덟 개. 라벨은 A1~A4, B1~B4. 전부 내려가 있다."}],
+    text:"스위치 여덟 개. 라벨은 A1~A4, B1~B4. 전부 내려가 있다.\n라벨에는 번호만 있고 무슨 계통인지는 적혀 있지 않다."}],
   locks:{
-   L5:{name:"배전반",sub:"스위치 8개",type:"switches",
-    hints:["벽 안내문이 어느 계통을 올려야 하는지 말해 준다.","B 라인 넷은 전부 올리고, A 라인은 하나도 건드리지 않는다.","B1·B2·B3·B4 만 ON."],
-    solved:"차단기가 차례로 물린다. 랙의 LED가 아래에서 위로 살아나고, 콘솔에 빛이 들어온다.\n기계실 문의 전자 잠금이 풀렸고, 관제실 조명도 들어왔다.",
+   L5:{name:"배전반",sub:"스위치 8개",type:"switches",answerOn:["B3","B4"],
+    hints:["어느 라인이 서버인지, 그 라인에서 몇 번이 살아 있는지 — 둘 다 이 방에 없다.","소장실 설비 관리 대장이 A/B 라인의 정체를 알려 주고, 저온 생물실 냉동고 노트가 소손된 번호를 알려 준다.","B3·B4만 올린다. 나머지는 전부 내린 채로."],
+    solved:"차단기 두 개가 물린다. 살아남은 계통만 전류를 받는다.\n랙 절반의 LED가 살아나고 콘솔에 빛이 들어온다.\n기계실 문의 전자 잠금이 풀렸고, 관제실 조명도 들어왔다.",
     opens:["z5","z8"],reexamine:"console"},
    L6:{name:"콘솔 로그인",sub:"4자리",type:"keypad",answer:"0609",ph:"네 자리",need:{lock:"L5"},
-    hints:["소장 계정이다. 비밀번호 단서는 소장실에 있다.","소장실 일지가 '그 아이 생일'이라 적었고, 액자 사진 뒷면에 날짜가 있다.","2014년 6월 9일 → 0609"],
+    hints:["소장 계정이다. 비밀번호가 무엇을 뜻하는지와, 실제 값이 서로 다른 방에 있다.","기록보관소 대출 대장에 계정 규칙이 적혀 있고, 소장실 액자 뒷면에 그 날짜가 있다.","2014년 6월 9일 → 0609"],
     solved:"로그인 성공. 마지막 로그가 그대로 남아 있다.\n\n2019-11-08  04:28   격리 프로토콜 발동\n2019-11-08  04:30   주전원 차단 — 전 구역 봉쇄\n2019-11-08  04:30   게이트 제어 이관: 관제실 수동 인증",
     note:"주전원이 차단된 시각 — 04:30"}}},
 
 { id:"z5", num:"05", name:"기계실", sys:"설비", art:ART.mech, need:{lock:"L5"},
-  flavor:"천장까지 배관이 가득 차 있다. 냉각 펌프 두 대는 멈춘 지 오래고, 벽의 밸브 제어반에 색 손잡이 네 개가 달려 있다.",
+  flavor:"천장까지 배관이 가득 차 있다. 냉각 펌프 두 대는 멈춘 지 오래고, 벽의 밸브 제어반에 손잡이 네 개가 달려 있다. 색은 다 바랬고 A~D 라벨만 남았다.",
   spots:[
    {id:"gauge",x:240,y:128,w:64,h:64,px:272,py:124,title:"계통 게이지",lock:"L7",
-    text:"바늘이 0에 붙어 있다. 아래 다이얼로 목표 압력을 입력하게 되어 있다.\n입력 형식: 소수점을 뺀 세 자리."},
+    text:"바늘이 0에 붙어 있다. 아래 다이얼로 목표 압력을 입력하게 되어 있다.\n눈금판 옆 각인: 「목표 = 격리실 압력 − 교정 보정치」\n입력 형식: 소수점을 뺀 세 자리."},
    {id:"valve",x:330,y:140,w:106,h:112,px:428,py:146,title:"밸브 제어반",lock:"L8",
-    text:"색 손잡이 넷 — 황, 청, 녹, 적. 순서대로 돌려야 계통이 열린다.",
+    text:"손잡이 넷. 도색이 다 벗겨져 A·B·C·D 라벨만 남았다.\n어느 라벨이 어느 색 배관인지는 여기 적혀 있지 않다.",
     need:{lock:"L7"},needMsg:"압력이 0인 상태에서는 손잡이가 헛돈다. 게이지부터 맞춰야 한다."},
+   {id:"tool",x:462,y:186,w:76,h:66,px:500,py:182,title:"공구함",
+    text:"몽키스패너, 육각렌치, 절연테이프. 뚜껑 안쪽에 정비 기록표가 붙어 있다.",
+    note:"정비 기록 — 황색관 밸브 1번 교체 완료 · 게이지 교정 보정치 0.10",
+    art:`<svg viewBox="0 0 420 92"><rect x="40" y="6" width="340" height="80" rx="2" fill="#d8ccb4" opacity=".12"/>
+     <text x="62" y="28" fill="#8497a3" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="2">정비 기록표</text>
+     <path d="M62 36 h300" stroke="#6d7e8a" stroke-width="1"/>
+     <g font-family="IBM Plex Sans KR, sans-serif" font-size="13" fill="#c3d1da">
+     <text x="62" y="58">황색관 밸브</text><text x="176" y="58" fill="#c9b355" font-family="IBM Plex Mono, monospace" font-size="15">1번</text><text x="222" y="58">교체 완료</text>
+     <text x="62" y="80">게이지 교정 보정치</text><text x="206" y="80" fill="#eda440" font-family="IBM Plex Mono, monospace" font-size="15">0.10</text></g></svg>`},
    {id:"pump",x:42,y:150,w:176,h:102,px:130,py:146,title:"냉각 펌프",
     text:"두 대 모두 축이 굳었다. 명판에 정격만 적혀 있다.\n손으로 돌려봐도 꿈쩍하지 않는다."},
-   {id:"tool",x:462,y:186,w:76,h:66,px:500,py:182,title:"공구함",
-    text:"몽키스패너, 육각렌치, 절연테이프. 쓸 만한 건 많은데 여기서 쓸 데가 없다.\n바닥에 기름때만 묻어난다."},
    {id:"ladder",x:548,y:66,w:44,h:186,px:567,py:62,title:"점검 사다리",
     text:"천장 점검구로 올라가는 사다리. 위쪽 해치는 바깥에서 봉인되어 있다.\n6년 전 누군가 여기로 나가려다 실패한 자국이 남아 있다."}],
   locks:{
    L7:{name:"계통 게이지",sub:"3자리",type:"keypad",answer:"086",ph:"세 자리",max:3,
-    hints:["이 방에는 맞출 값이 없다. 압력을 알려 주는 계기는 다른 방에 있다.","배양 격리실 압력계가 현재 값을 표시하고 있고, 눈금판 메모가 같은 값으로 맞추라고 지시한다.","0.86 MPa → 소수점을 빼고 086"],
+    hints:["빼야 할 값은 여기 있지만, 빼어질 값은 다른 방에 있다.","격리실 압력계가 0.96 MPa를 가리키고, 이 방 공구함의 정비 기록에 보정치 0.10이 있다.","0.96 − 0.10 = 0.86 → 086"],
     solved:"바늘이 천천히 올라가 0.86에서 멈춘다. 계통에 압력이 걸렸다.\n밸브 손잡이가 이제 물린다."},
-   L8:{name:"밸브 제어반",sub:"색 손잡이 4개",type:"sequence",answer:["y","b","g","r"],
-    colors:[{k:"y",label:"황",hex:"#c9b355"},{k:"b",label:"청",hex:"#5aa8d0"},{k:"g",label:"녹",hex:"#77c47f"},{k:"r",label:"적",hex:"#e2635a"}],
-    hints:["순서는 이 방에 적혀 있지 않다. 냉각 계통 문서를 찾아야 한다.","배양 격리실 보관함에서 나온 도면에 개방 순서가 있다.","황 → 청 → 녹 → 적"],
+   L8:{name:"밸브 제어반",sub:"손잡이 4개",type:"sequence",answer:["C","A","D","B"],
+    colors:[{k:"A",label:"A",text:"A"},{k:"B",label:"B",text:"B"},{k:"C",label:"C",text:"C"},{k:"D",label:"D",text:"D"}],
+    hints:["개방 순서는 색으로 적혀 있는데, 손잡이는 알파벳이다. 색과 알파벳을 잇는 표가 따로 있다.","격리실 도면이 황→청→녹→적 순서를 주고, 저온 생물실 배관표가 색마다 제어반 라벨을 지정한다.","황=C, 청=A, 녹=D, 적=B → C A D B"],
     solved:"네 밸브가 차례로 열리고, 배관이 낮게 울린다. 제어반 덮개가 튀어오르며 각인된 판이 드러난다.\n\n설비 계통 인증값 — 05",
     note:"설비 계통 인증값 — 05",chain:"fac"}}},
 
@@ -539,32 +564,42 @@ var ZONES=[
   flavor:"이 방만 비상등이 아직 밝다. 책상 위 서류는 그대로인데, 누군가 이미 한 번 뒤진 흔적이 있다.",
   spots:[
    {id:"desk",x:196,y:160,w:196,h:44,px:290,py:156,title:"책상 결재판",
-    text:"결재판 맨 위 문서에 소장의 서명. 마지막 결재일이 찍혀 있다.\n그 아래는 전부 백지다. 그날 이후 결재된 문서가 없다.",
-    note:"소장 최종 서명 — 2019년 11월 8일",
-    art:`<svg viewBox="0 0 420 100"><rect x="70" y="4" width="280" height="90" rx="2" fill="#e7ecee" opacity=".1"/>
-     <text x="94" y="28" fill="#8497a3" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="2">격리 승인 요청서</text>
-     <path d="M94 42 h190 M94 54 h160" stroke="#5d7580" stroke-width="1.5"/>
-     <text x="94" y="82" fill="#eda440" font-family="IBM Plex Mono, monospace" font-size="15" letter-spacing="1">2019. 11. 08.</text>
-     <path d="M250 84 c 14 -20, 26 6, 40 -12 s 20 10, 32 -6" stroke="#c3d1da" stroke-width="2" fill="none" opacity=".8"/></svg>`},
+    text:"맨 위 문서는 「샘플 회수 지침서」. 소장의 서명은 남아 있는데 날짜란이 찢겨나갔다.\n\n본문: 「회수는 배양 일수가 적은 것부터 순서대로 시행한다.」\n뒷장 여백에 볼펜으로: 「격리실 코드는 변환한 숫자를 뒤에서부터 읽는다.」",
+    note:"결재판 — 회수는 배양 일수가 적은 것부터 / 격리실 코드는 변환값을 뒤에서부터",
+    art:`<svg viewBox="0 0 420 108"><rect x="60" y="4" width="300" height="98" rx="2" fill="#e7ecee" opacity=".1"/>
+     <text x="84" y="26" fill="#8497a3" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="2">샘플 회수 지침서</text>
+     <path d="M84 34 h252" stroke="#5d7580" stroke-width="1"/>
+     <text x="84" y="56" fill="#c3d1da" font-family="IBM Plex Sans KR, sans-serif" font-size="13">회수는 배양 일수가 적은 것부터 시행</text>
+     <text x="84" y="78" fill="#eda440" font-family="IBM Plex Sans KR, sans-serif" font-size="12">(뒷장) 격리실 코드는 변환값을 뒤에서부터</text>
+     <g><rect x="250" y="84" width="86" height="16" fill="#0e151a" opacity=".55"/>
+     <text x="256" y="96" fill="#6d7e8a" font-family="IBM Plex Mono, monospace" font-size="10">날짜란 찢김</text></g>
+     <path d="M96 96 c 12 -14, 22 4, 34 -8" stroke="#c3d1da" stroke-width="1.8" fill="none" opacity=".8"/></svg>`},
+   {id:"shelf",x:28,y:60,w:132,h:192,px:136,py:82,title:"책장",
+    text:"학술지 사이에 검은 바인더 하나 — 「설비 관리 대장」.\n펼치니 라인 배정표가 나온다.\n\n한 권은 속을 파낸 가짜 책이다. 안은 비어 있다. 누가 먼저 다녀갔다.",
+    note:"설비 관리 대장 — A라인 = 냉각 펌프 / B라인 = 서버 랙",
+    art:`<svg viewBox="0 0 420 96"><rect x="60" y="6" width="300" height="84" rx="2" fill="#cfd8dc" opacity=".09"/>
+     <text x="84" y="28" fill="#8497a3" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="2">전원 라인 배정표</text>
+     <path d="M84 36 h252" stroke="#5d7580" stroke-width="1"/>
+     <g font-family="IBM Plex Mono, monospace" font-size="15">
+     <text x="84" y="60" fill="#e2635a">A 라인</text><text x="170" y="60" fill="#c3d1da" font-family="IBM Plex Sans KR, sans-serif" font-size="13">냉각 펌프</text>
+     <text x="84" y="82" fill="#5ad0c0">B 라인</text><text x="170" y="82" fill="#c3d1da" font-family="IBM Plex Sans KR, sans-serif" font-size="13">서버 랙</text></g></svg>`},
    {id:"shredder",x:404,y:186,w:84,h:66,px:446,py:182,title:"문서 파쇄기",
     text:"투입구에 종이가 걸려 끝까지 갈리지 않았다. 조각을 맞춰 붙였다.\n\n「금고는 그날이다. 내가 마지막으로 서명한 날.」",
     note:"금고 번호 = 소장이 마지막으로 서명한 날 (월일 네 자리)"},
    {id:"frame",x:202,y:60,w:96,h:80,px:250,py:56,title:"액자",
     text:"소장과 연구원 둘이 나란히 서 있다. 사진을 빼내자 뒷면에 연필 글씨.\n\n「서연이 첫 돌 — 2014. 06. 09.」",
     note:"액자 사진 뒷면 — 2014. 06. 09."},
-   {id:"shelf",x:28,y:60,w:132,h:192,px:136,py:82,title:"책장",
-    text:"학술지 열몇 권. 한 권만 거꾸로 꽂혀 있다.\n빼 보니 속을 파낸 가짜 책이다. 안은 비어 있다. 누가 먼저 다녀갔다."},
    {id:"safe",x:410,y:90,w:96,h:88,px:498,py:96,title:"벽 금고",lock:"L9",
     text:"네 자리 다이얼. 손잡이는 잠겨 있고 다이얼만 헛돈다."},
    {id:"drawer",x:230,y:204,w:132,h:26,px:350,py:217,title:"책상 서랍",lock:"L10",
-    text:"잠긴 서랍. 네 자리 번호키. 소장이 늘 손 닿는 곳에 두었을 것이다."}],
+    text:"잠긴 서랍. 네 자리 번호키."}],
   locks:{
    L9:{name:"벽 금고 다이얼",sub:"4자리",type:"keypad",answer:"1108",ph:"네 자리",
-    hints:["파쇄기 조각이 무엇을 입력할지 알려 준다.","결재판의 최종 서명일을 월·일 네 자리로.","2019년 11월 8일 → 1108"],
+    hints:["결재판의 날짜란이 찢겨 있다. 그 날짜를 다른 경로로 알아내야 한다.","냉동고 노트가 '마지막 결재 = 격리 명령서'라고 알려 주고, 서버실 백업 로그에 격리 프로토콜 발동일이 찍혀 있다.","2019-11-08 → 월일 네 자리 1108"],
     solved:"다이얼이 걸리고 손잡이가 돌아간다. 봉인 스티커가 붙은 카드 한 장과 열쇠.\n\n「게이트 승인 코드 — 82」",
     note:"게이트 승인 코드 — 82 (게이트 앞 두 자리)",items:["기록보관소 열쇠"],opens:["z7"]},
-   L10:{name:"책상 서랍",sub:"4자리",type:"keypad",answer:"3172",ph:"네 자리",
-    hints:["이 방에는 서랍 번호가 없다. 소장이 어딘가에 기록해 두었다.","기록보관소 마이크로필름 리더에 소장의 개인 문서가 걸려 있다.","필름 판독 결과 → 3172"],
+   L10:{name:"책상 서랍",sub:"4자리",type:"keypad",answer:"3182",ph:"네 자리",
+    hints:["서랍 번호는 두 조각으로 나뉘어 있다. 하나는 사람, 하나는 코드.","마이크로필름이 '소장 사번 + 승인 코드'라고 알려 준다. 소장 사번은 대출 대장에, 승인 코드는 이 방 금고에 있다.","소장 D-31 + 승인 코드 82 → 3182"],
     solved:"서랍 안쪽에 얇은 금속판 하나. 각인된 숫자.\n\n관리 계통 인증값 — 93",
     note:"관리 계통 인증값 — 93",chain:"adm"}}},
 
@@ -589,24 +624,34 @@ var ZONES=[
      <text x="320" y="104" fill="#c3d1da">T</text><text x="346" y="104" fill="#eda440">1</text></g>
      <path d="M36 74 h348" stroke="#3b4e5b" stroke-width="1"/></svg>`},
    {id:"ledger",x:258,y:160,w:130,h:92,px:322,py:172,title:"대출 대장",
-    text:"마지막 두 건만 반납 처리가 안 된 채로 남아 있다.\n\n11/07  L-29  이솔    — 미반납\n11/08  J-41  정미르  — 미반납",
-    note:"미반납 기록 — 이솔(L-29), 정미르(J-41) 순"},
+    text:"마지막 세 건의 기록이 남아 있다. 표지 안쪽에 관리 규정도 붙어 있다.",
+    note:"대출 대장 — 미반납: 이솔 L-29, 정미르 J-41 (민하는 반납완료) / 소장 사번 D-31 / 계정 비밀번호는 자녀 생일",
+    art:`<svg viewBox="0 0 420 150"><rect x="20" y="6" width="380" height="138" rx="2" fill="#e0d6c2" opacity=".13"/>
+     <text x="42" y="28" fill="#8497a3" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="2">자료 대출 대장</text>
+     <path d="M42 36 h336" stroke="#6d7e8a" stroke-width="1"/>
+     <g font-family="IBM Plex Mono, monospace" font-size="13">
+     <text x="42" y="58" fill="#c3d1da">11/07  L-29  이솔</text><text x="270" y="58" fill="#e2635a">미반납</text>
+     <text x="42" y="78" fill="#6d7e8a">11/07  M-13  민하</text><text x="270" y="78" fill="#6d7e8a">반납완료</text>
+     <text x="42" y="98" fill="#c3d1da">11/08  J-41  정미르</text><text x="270" y="98" fill="#e2635a">미반납</text></g>
+     <path d="M42 110 h336" stroke="#6d7e8a" stroke-width="1"/>
+     <g font-family="IBM Plex Sans KR, sans-serif" font-size="11.5" fill="#a8b8c2">
+     <text x="42" y="130">관리자 D-31 (소장) · 전산 계정 비밀번호는 자녀 생일로 지정</text></g></svg>`},
    {id:"shelfA",x:24,y:72,w:216,h:180,px:130,py:68,title:"서가",
     text:"분류 번호 순으로 꽂힌 보고서 수백 권. 대부분 물에 젖었다 마르며 붙어버렸다.\n펼쳐지는 게 몇 권 없고, 내용도 실험 장비 검수 기록뿐이다."},
    {id:"film",x:410,y:118,w:112,h:134,px:466,py:114,title:"마이크로필름 리더",lock:"L12",
     text:"필름이 걸린 채 멈춰 있다. 판독하려면 캐비닛의 램프 모듈이 필요하다.",
-    text2:"램프를 끼우자 화면에 필름이 비친다. 소장 개인 문서 한 장.\n\n「집무실 서랍 — 3172」",
+    text2:"램프를 끼우자 화면에 필름이 비친다. 소장 개인 문서 한 장.\n\n「집무실 서랍 = 내 사번 두 자리 + 게이트 승인 코드 두 자리」",
     need:{lock:"L11"},needMsg:"광원이 없다. 리더에 램프 모듈이 빠져 있다."},
    {id:"cab",x:540,y:120,w:52,h:132,px:582,py:144,title:"보관 캐비닛",lock:"L11",
     text:"네 자리 번호키가 달린 캐비닛. 관리자만 열 수 있게 되어 있다."}],
   locks:{
    L11:{name:"보관 캐비닛",sub:"4자리",type:"keypad",answer:"2941",ph:"네 자리",
-    hints:["번호는 사람이 아니라 사번에서 나온다. 사번은 이 방에 없다.","접수 로비 명찰의 번호를 쓴다. 순서는 대출 대장의 미반납 순서.","이솔 29, 정미르 41 → 2941"],
+    hints:["번호는 사번에서 나온다. 사번이 적힌 물건은 이 방에 없다.","접수 로비 명찰의 번호를 쓰되, 대출 대장에서 '미반납'인 사람만 골라 대장 순서대로.","이솔 29, 정미르 41 → 2941 (민하는 반납완료라 제외)"],
     solved:"캐비닛이 열린다. 안에는 예비 램프 모듈 하나.\n마이크로필름 리더에 끼울 수 있다.",items:["램프 모듈"]},
    L12:{name:"필름 판독",sub:"자동",type:"auto",
-    hints:["캐비닛을 먼저 열어야 한다.","캐비닛에서 나온 램프 모듈을 리더에 끼우면 자동으로 판독된다.","판독 결과는 소장실 서랍 번호다."],
-    solved:"필름이 판독되었다.\n\n「집무실 서랍 — 3172」",
-    note:"마이크로필름 판독 — 소장실 서랍 번호 3172"}}},
+    hints:["캐비닛을 먼저 열어야 한다.","캐비닛에서 나온 램프 모듈을 리더에 끼우면 자동으로 판독된다.","판독 결과가 소장실 서랍 번호의 조합 규칙을 알려 준다."],
+    solved:"필름이 판독되었다.\n\n「집무실 서랍 = 내 사번 두 자리 + 게이트 승인 코드 두 자리」",
+    note:"마이크로필름 — 소장실 서랍 = 소장 사번 2자리 + 승인 코드 2자리"}}},
 
 { id:"z8", num:"08", name:"관제실", sys:"공용", art:ART.control, need:{lock:"L5"}, final:true,
   flavor:"모니터 월이 절반쯤 살아나 노이즈를 뿌린다. 통로 끝은 블라스트 게이트가 막고 있고, 그 앞에 인증 패널이 서 있다. 여섯 자리.",
@@ -624,13 +669,11 @@ var ZONES=[
     need:{lock:"L13"},needMsg:"인증 패널이 먼저다. 게이트 키패드는 아직 죽어 있다."}],
   locks:{
    L13:{name:"인증 패널",sub:"6자리",type:"keypad",answer:"059347",ph:"여섯 자리",max:6,
-    hints:["세 계통의 인증값은 각 계통의 마지막 자물쇠에서 나온다. 순서가 문제다.","순서는 계통 이름이 아니라 계통 번호다. 접수 로비 캐비닛에서 나온 구역 배치도를 보라.","제1계통 설비(05) · 제2계통 관리(93) · 제3계통 생물(47) → 059347",
-     ],
+    hints:["세 인증값은 각 계통의 마지막 자물쇠에서 나온다. 문제는 붙이는 순서다.","순서는 계통 이름이 아니라 계통 번호다. 접수 로비 캐비닛에서 나온 구역 배치도를 보라.","제1계통 설비(05) · 제2계통 관리(93) · 제3계통 생물(47) → 059347"],
     solved:"세 계통이 차례로 초록으로 바뀐다. 게이트 키패드에 전원이 들어왔다.",reexamine:"gate"},
    L14:{name:"게이트 수동 코드",sub:"4자리",type:"keypad",answer:"8230",ph:"네 자리",need:{lock:"L13"},
     hints:["앞 두 자리와 뒤 두 자리의 출처가 다르다. 둘 다 이미 수첩에 있다.","앞은 소장 금고에서 나온 승인 코드. 뒤는 주전원이 차단된 시각의 '분'이다 — 접수 로비 벽시계와 서버 로그가 같은 시각을 가리킨다.","승인 코드 82 + 04:30의 분 30 → 8230"]}}}
 ];
-
 /* ==================== 상태 ==================== */
 var LOCK_TOTAL=14;
 var S={zone:"z1",open:null,seen:{},solved:{},revealed:{},notes:[],items:[],
@@ -747,7 +790,10 @@ function renderLock(id){
      +'<button class="btn" id="submit">입력</button></div>';
   }else if(L.type==="sequence"){
     h+='<div class="seq">'+L.colors.map(function(c){
-      return '<button class="cbtn" data-c="'+c.k+'" title="'+c.label+'"><span style="background:'+c.hex+'"></span></button>'}).join("")+'</div>'
+      var face = c.text
+        ? '<span class="ctext">'+c.text+'</span>'
+        : '<span style="background:'+c.hex+'"></span>';
+      return '<button class="cbtn" data-c="'+c.k+'" title="'+c.label+'">'+face+'</button>'}).join("")+'</div>'
      +'<div class="seqview">입력: '+(S.seq.length?S.seq.map(function(k){var f="";L.colors.forEach(function(c){if(c.k===k)f=c.label});return f}).join(" › "):"—")+'</div>'
      +'<div class="answer" style="margin-top:4px"><button class="btn ghost" id="seqclear">처음부터</button></div>';
   }else if(L.type==="switches"){
@@ -844,10 +890,16 @@ function wire(){
       el.onclick=t; el.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();t()}};
     });
     if(sb)sb.onclick=function(){
+      var all=["A1","A2","A3","A4","B1","B2","B3","B4"];
+      var want=L.answerOn||["B1","B2","B3","B4"];
       var aOn=["A1","A2","A3","A4"].some(function(k){return S.sw[k]});
-      var bAll=["B1","B2","B3","B4"].every(function(k){return S.sw[k]});
       if(aOn){tryLock(id,false,"A 라인이 올라갔다. 어딘가에서 경보가 짧게 울린다.");return}
-      tryLock(id,bAll,bAll?"":"전원이 부족하다. B 라인이 다 올라가지 않았다.");
+      var exact=all.every(function(k){return !!S.sw[k]===(want.indexOf(k)>=0)});
+      var onCount=all.filter(function(k){return S.sw[k]}).length;
+      var msg = onCount===0 ? "아무것도 올리지 않았다."
+        : (onCount>want.length ? "과부하다. 소손된 계통까지 올렸다 — 두꺼비집이 도로 떨어진다."
+                               : "전원이 부족하다. 살아 있는 계통이 다 올라가지 않았다.");
+      tryLock(id,exact,exact?"":msg);
     };
   }else if(L.type==="auto"){
     if(sb)sb.onclick=function(){ tryLock(id,true) };
