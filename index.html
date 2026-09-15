@@ -127,6 +127,8 @@ svg.scene{display:block;width:100%;height:auto}
 .cluelist li.got em{font-style:normal;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--cyan);margin-right:6px}
 .cluelist li.todo{color:#8d7550;border-color:var(--line);border-style:dashed}
 .cluelist li.todo em{font-style:normal;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--amber);margin-right:6px}
+.cluelist li.blocked{color:#5a6a75;border-color:var(--line);border-style:dashed;opacity:.8}
+.cluelist li.blocked em{font-style:normal;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--red);margin-right:6px}
 .lockhead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .lockhead h3{margin:0;font-size:15px;font-weight:600;color:var(--amber)}
 .lockhead span{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.1em}
@@ -763,6 +765,7 @@ function fmt(ms){var t=Math.floor(ms/1000);return String(Math.floor(t/60)).padSt
 function tick(){if(!S.done)$("#clock").textContent=fmt(Date.now()-S.start)}
 setInterval(tick,500);
 function Z(id){for(var i=0;i<ZONES.length;i++)if(ZONES[i].id===id)return ZONES[i];return null}
+function zoneByName(name){for(var i=0;i<ZONES.length;i++)if(ZONES[i].name===name)return ZONES[i];return null}
 function curZ(){return Z(S.zone)}
 function hasItem(n){return S.items.indexOf(n)>=0}
 function lockDone(id){return !!S.solved[id]}
@@ -894,7 +897,11 @@ function renderClues(L){
   });
   var h='<div class="cluebox"><div class="cluehead">관련 단서 <b>'+have.length+'</b>/'+L.clues.length+' 확보</div><ul class="cluelist">';
   have.forEach(function(c){ h+='<li class="got"><em>확보</em>'+esc(c.z)+'</li>'; });
-  miss.forEach(function(c){ h+='<li class="todo"><em>미확보</em>'+esc(c.z)+'</li>'; });
+  miss.forEach(function(c){
+    var zn=zoneByName(c.z), reachable = !zn || zoneOpen(zn);
+    if(reachable) h+='<li class="todo"><em>미확보</em>'+esc(c.z)+'</li>';
+    else h+='<li class="blocked"><em>봉쇄</em>'+esc(c.z)+' — 아직 못 들어간다</li>';
+  });
   h+='</ul></div>';
   return h;
 }
