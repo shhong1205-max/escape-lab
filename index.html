@@ -81,7 +81,9 @@ svg.scene{display:block;width:100%;height:auto}
 .scanhint{position:absolute;left:10px;bottom:8px;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:#596b77;pointer-events:none}
 
 /* 조사 지점 목록 — 좁은 화면에서 정확히 누르기 위한 대체 경로 */
-.spotlist{margin-top:9px;display:flex;flex-wrap:wrap;gap:6px}
+.spotlist{margin-top:9px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.spotlist .listlab{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;color:var(--muted);margin-right:2px}
+.spotlist .listlab.dim{color:#5a6a75;font-family:var(--sans);font-size:12.5px;letter-spacing:0;font-style:italic}
 .spotlist button{font:inherit;font-size:13px;color:#a9bac4;background:var(--panel);border:1px solid var(--line);
   border-radius:2px;padding:11px 13px;min-height:44px;cursor:pointer;display:flex;align-items:center;gap:7px;
   transition:border-color .15s,color .15s}
@@ -736,6 +738,24 @@ function renderHud(){
   }).join("");
 }
 
+/* 터치 영역 확대 — 원래 크기가 작은 지점은 중심을 기준으로 넓히되,
+   다른 지점의 영역을 침범하기 직전까지만 넓힌다 */
+function hitRect(s,all){
+  var MIN=76, cx=s.x+s.w/2, cy=s.y+s.h/2;
+  var w=Math.max(s.w,MIN), h=Math.max(s.h,MIN), x, y, guard=0;
+  function place(){ x=Math.max(0,Math.min(600-w,cx-w/2)); y=Math.max(0,Math.min(340-h,cy-h/2)) }
+  function clash(){
+    for(var i=0;i<all.length;i++){ var o=all[i];
+      if(o.id===s.id) continue;
+      if(x<o.x+o.w && x+w>o.x && y<o.y+o.h && y+h>o.y) return true }
+    return false }
+  place();
+  while(clash() && (w>s.w||h>s.h) && guard++<40){
+    w=Math.max(s.w,w-4); h=Math.max(s.h,h-4); place();
+  }
+  return {x:x,y:y,w:w,h:h};
+}
+
 function render(){
   if(S.done)return;
   var z=curZ();
@@ -751,21 +771,23 @@ function render(){
     var seen=S.seen[z.id+":"+s.id];
     var pc="pin"+(s.lock?(lockDone(s.lock)?" seen":" lock"):(seen?" seen":""));
     if(s.hidden&&!seen)pc="pin hid";
-    return '<g><rect class="hot" tabindex="0" role="button" aria-label="'+s.title+'" data-spot="'+s.id+'" x="'+s.x+'" y="'+s.y+'" width="'+s.w+'" height="'+s.h+'" rx="2"></rect>'
+    var r=hitRect(s,spots);
+    return '<g><rect class="hot" tabindex="0" role="button" aria-label="'+(seen?s.title:"미조사 지점")+'" data-spot="'+s.id+'" x="'+r.x+'" y="'+r.y+'" width="'+r.w+'" height="'+r.h+'" rx="2"></rect>'
      + '<circle class="'+pc+'" cx="'+s.px+'" cy="'+s.py+'" r="4.2"></circle></g>';
   }).join("");
   h+='<div class="sceneBox"><svg class="scene" viewBox="0 0 600 340" role="img" aria-label="'+z.name+'">'+z.art+'<g>'+hots+'</g></svg>'
    + '<div class="scanhint">밝은 점을 눌러 조사 · 보라색 점은 새로 드러난 곳</div></div>';
 
-  h+='<div class="spotlist">'+spots.map(function(s){
-    var seen=S.seen[z.id+":"+s.id], done=s.lock&&lockDone(s.lock);
-    var c="";
-    if(s.lock) c=done?"done":"lock";
-    else if(seen) c="seen";
-    if(s.hidden&&!seen) c="hid";
-    if(S.open===s.id) c+=" cur";
-    return '<button class="'+c+'" data-spot="'+s.id+'"><span class="mk"></span>'+s.title+'</button>';
-  }).join("")+'</div>';
+  /* 이미 찾아낸 곳만 모인다 — 새 지점은 그림에서 직접 찾아야 한다 */
+  var known=spots.filter(function(s){return S.seen[z.id+":"+s.id]});
+  h+='<div class="spotlist">'+(known.length
+    ? '<span class="listlab">다시 보기</span>'+known.map(function(s){
+        var done=s.lock&&lockDone(s.lock);
+        var c=s.lock?(done?"done":"lock"):"seen";
+        if(S.open===s.id) c+=" cur";
+        return '<button class="'+c+'" data-spot="'+s.id+'"><span class="mk"></span>'+esc(s.title)+'</button>';
+      }).join("")
+    : '<span class="listlab dim">아직 조사한 곳이 없다. 그림을 훑어보라.</span>')+'</div>';
 
   h+=renderDetail();
   h+=renderTrays();
