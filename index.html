@@ -70,9 +70,12 @@ svg.scene{display:block;width:100%;height:auto}
 .scene .lnf{stroke:#3f5460;stroke-width:1;fill:none}
 .scene .amber{fill:var(--amber)} .scene .cyan{fill:var(--cyan)}
 .scene .lbl{fill:#63757f;font-family:var(--mono);font-size:8.5px;letter-spacing:.12em}
-.scene .hot{fill:rgba(255,255,255,0);cursor:pointer;stroke:rgba(237,164,64,0);stroke-width:1.5;transition:fill .15s,stroke .15s}
-/* 아직 찾지 못한 지점은 호버해도 아무 반응이 없다 — 직접 눌러봐야 한다.
-   .known (한 번 찾았거나, 표시등을 켠 상태)만 호버 시 드러난다. */
+/* 아직 찾지 못한 지점은 커서도, 호버 반응도 그대로다 — 화살표 커서가
+   손가락 모양으로 바뀌는 것조차 "여기 뭔가 있다"는 신호가 되기 때문에,
+   기본 커서를 유지해 클릭 가능 영역을 눈으로 구분할 수 없게 한다.
+   .known(한 번 찾은 지점)만 커서·호버 강조가 함께 켜진다. */
+.scene .hot{fill:rgba(255,255,255,0);stroke:rgba(237,164,64,0);stroke-width:1.5;transition:fill .15s,stroke .15s;outline:none}
+.scene .hot.known{cursor:pointer}
 .scene .hot.known:hover{fill:rgba(237,164,64,.13);stroke:var(--amber)}
 .scene .hot.known:focus-visible{fill:rgba(237,164,64,.13);stroke:var(--amber);outline:none}
 .scene .pin{fill:var(--amber);animation:blip 2.2s ease-in-out infinite;pointer-events:none}
