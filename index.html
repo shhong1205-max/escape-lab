@@ -37,17 +37,7 @@ body{margin:0;background:var(--ink);
 
 /* 구역 이동 바 */
 .navbar{margin-top:10px;border:1px solid var(--line-soft);border-radius:3px;background:rgba(0,0,0,.2);padding:9px}
-.navhead{display:flex;align-items:center;gap:10px;margin-bottom:7px}
-.navlab{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;color:var(--muted)}
-.pinbtn{margin-left:auto;font:inherit;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;
-  color:var(--muted);background:none;border:1px solid var(--line-soft);border-radius:2px;
-  padding:5px 9px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:color .15s,border-color .15s}
-.pinbtn:hover{color:var(--amber);border-color:var(--amber)}
-.pinbtn .sw2{width:7px;height:7px;border-radius:50%;background:#43535e}
-.pinbtn.on .sw2{background:var(--amber);box-shadow:0 0 6px var(--amber)}
-.pinbtn.on{color:#93a6b1}
-
-/* 표시등 끄기 — 조사 지점을 스스로 찾아야 한다 */
+.navlab{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;color:var(--muted);margin-bottom:7px;display:block}
 .zones{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}
 @media(min-width:330px){.zones{grid-template-columns:repeat(4,1fr)}}
 @media(min-width:680px){.zones{grid-template-columns:repeat(8,1fr)}}
@@ -219,7 +209,7 @@ footer{margin-top:28px;font-family:var(--mono);font-size:10px;letter-spacing:.14
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 
-<div class="wrap" id="wrap" data-pins="off">
+<div class="wrap" id="wrap">
   <div class="hud">
     <div class="brand"><span class="lamp" aria-hidden="true"></span><span>SECTOR 7 · 봉쇄 D+2191</span></div>
     <div class="stat hot"><b id="clock">00:00</b><i>경과</i></div>
@@ -228,9 +218,7 @@ footer{margin-top:28px;font-family:var(--mono);font-size:10px;letter-spacing:.14
     <div class="stat"><b id="hintsLeft">6</b><i>힌트</i></div>
   </div>
   <div class="navbar">
-    <div class="navhead"><span class="navlab">구역 이동</span>
-      <button class="pinbtn" id="pinBtn" title="조사 지점을 미리 표시하는 쉬운 모드"><span class="sw2"></span><span id="pinTxt">표시등 끔</span></button>
-    </div>
+    <span class="navlab">구역 이동</span>
     <div class="zones" id="zones"></div>
   </div>
   <div id="stage"></div>
@@ -739,19 +727,8 @@ var ZONES=[
 /* ==================== 상태 ==================== */
 var LOCK_TOTAL=14;
 
-/* 표시등 기본값 — 기기와 무관하게 항상 끈 채로 시작한다.
-   조사 지점은 찾아서 눌러야 드러나며, 방 그림 속 사물(라벨·가구)이 단서다.
-   '표시등 켬'은 원하는 사람만 쓰는 쉬운 모드다. */
-function defaultPins(){ return "off"; }
-function applyPins(){
-  var wrap=document.getElementById("wrap"), b=document.getElementById("pinBtn");
-  if(wrap) wrap.dataset.pins=S.pins;
-  if(b){ b.className="pinbtn"+(S.pins==="on"?" on":"");
-    document.getElementById("pinTxt").textContent = S.pins==="on"?"표시등 켬":"표시등 끔"; }
-}
 var S={zone:"z1",open:null,seen:{},solved:{},revealed:{},notes:[],items:[],
-  wrongs:0,hints:6,hintLv:{},start:Date.now(),done:false,seq:[],sw:{},trays:{},chains:{},
-  pins:defaultPins()};
+  wrongs:0,hints:6,hintLv:{},start:Date.now(),done:false,seq:[],sw:{},trays:{},chains:{}};
 function $(s){return document.querySelector(s)}
 function esc(t){return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
 function br(t){return esc(t).replace(/\n/g,"<br>")}
@@ -820,9 +797,9 @@ function render(){
 
   var hots=spots.map(function(s){
     var seen=S.seen[z.id+":"+s.id];
-    /* 표시등이 꺼져 있으면(기본값) 아직 못 찾은 지점은 점도, 호버 반응도 없다.
+    /* 아직 못 찾은 지점은 점도, 호버 반응도 없다.
        한 번 찾고 나면 그 지점만 영구히 드러난다. */
-    var reveal = seen || S.pins==="on";
+    var reveal = seen;
     var pc="pin"+(s.lock?(lockDone(s.lock)?" seen":" lock"):(seen?" seen":""));
     if(s.hidden&&!seen)pc="pin hid";
     var r=hitRect(s,spots);
@@ -831,9 +808,7 @@ function render(){
      + dot + '</g>';
   }).join("");
   h+='<div class="sceneBox"><svg class="scene" viewBox="0 0 600 340" role="img" aria-label="'+z.name+'">'+z.art+'<g>'+hots+'</g></svg>'
-   + '<div class="scanhint">'+(S.pins==="on"
-       ? '밝은 점을 눌러 조사 · 보라색 점은 새로 드러난 곳'
-       : '표시가 없다. 방 안을 훑어 조사할 곳을 직접 찾아라')+'</div></div>';
+   + '<div class="scanhint">표시가 없다. 방 안을 훑어 조사할 곳을 직접 찾아라</div></div>';
 
   /* 이미 찾아낸 곳만 모인다 — 새 지점은 그림에서 직접 찾아야 한다 */
   var known=spots.filter(function(s){return S.seen[z.id+":"+s.id]});
@@ -849,7 +824,7 @@ function render(){
   h+=renderDetail();
   h+=renderTrays();
   $("#stage").innerHTML=h;
-  renderHud();wire();decorate();applyPins();
+  renderHud();wire();decorate();
 }
 
 function renderDetail(){
@@ -1152,8 +1127,6 @@ function decorate(){
 
 function start(saved){
   if(saved&&saved.S){Object.assign(S,saved.S);S.start=Date.now()-(saved.elapsed||0)}
-  var pb=document.getElementById("pinBtn");
-  if(pb) pb.onclick=function(){ S.pins = S.pins==="on" ? "off" : "on"; render(); };
   if(S.done)finish();else render();
   tick();
 }
