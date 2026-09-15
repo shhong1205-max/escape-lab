@@ -310,6 +310,10 @@ ART.server=`<rect class="wall" x="0" y="0" width="600" height="250" fill="#111a2
 <rect class="obj2" x="262" y="76" width="118" height="54" rx="2"/><rect class="dark" x="268" y="82" width="106" height="42"/><g id="ports"></g><text class="lbl" x="262" y="144">PATCH PANEL</text>
 <rect class="obj2" x="398" y="70" width="76" height="56" rx="2"/><rect x="403" y="75" width="66" height="46" fill="#cfd8dc" opacity=".08"/>
 <path d="M411 88 h48 M411 98 h40 M411 108 h50" stroke="#5d7580" stroke-width="1.8" fill="none"/><text class="lbl" x="398" y="140">NOTICE</text>
+<rect x="478" y="74" width="34" height="48" rx="1" fill="#cfd8dc" opacity=".1" stroke="#5d7580" stroke-width="1"/>
+<rect x="483" y="78" width="24" height="5" fill="#8a6a2a" opacity=".8"/>
+<path d="M484 90 h20 M484 98 h16 M484 106 h20 M484 114 h12" stroke="#5d7580" stroke-width="1.4" fill="none"/>
+<text class="lbl" x="472" y="132">PRINTOUT</text>
 <rect class="obj" x="266" y="184" width="110" height="66" rx="2"/><rect class="metal" x="276" y="160" width="90" height="26" rx="2"/>
 <rect class="dark" x="282" y="166" width="78" height="46" rx="1"/>
 <g id="screenOn" style="display:none"><rect x="282" y="166" width="78" height="46" rx="1" fill="#0d2621"/>
@@ -562,8 +566,8 @@ var ZONES=[
 { id:"z4", num:"04", name:"서버실", sys:"설비", art:ART.server, need:{lock:"L1"},
   flavor:"완전한 암흑에 가깝다. 랙은 전부 죽었고 공기에서 탄 냄새가 난다. 벽의 배전반 스위치 여덟 개가 모두 내려가 있다.",
   spots:[
-   {id:"backup",x:262,y:133,w:76,h:23,px:300,py:131,title:"인쇄 백업 로그",
-    text:"패치패널 아래 걸린 클립보드. 전원이 끊기기 직전 자동 출력된 종이 로그다.\n전기가 없어도 이건 읽힌다.",
+   {id:"backup",x:478,y:74,w:34,h:48,px:495,py:98,title:"벽에 붙은 인쇄물",
+    text:"안내문과 기계실 문 사이, 테이프로 벽에 붙여둔 종이 한 장. 전원이 끊기기 직전 자동 출력된 로그다.\n전기가 없어도 이건 읽힌다.",
     note:"인쇄 백업 로그 — 배양 등록: 호박 D+21 / 진홍 D+9 · 2019-11-08 04:28 격리 프로토콜 발동",
     art:`<svg viewBox="0 0 420 116"><rect x="40" y="6" width="340" height="104" rx="2" fill="#e7ecee" opacity=".1"/>
      <text x="62" y="28" fill="#8497a3" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="2">AUTO-PRINT / 최종 백업</text>
