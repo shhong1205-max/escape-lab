@@ -121,11 +121,11 @@ svg.scene{display:block;width:100%;height:auto}
 .cluebox{margin:12px 0 4px;border:1px solid var(--line-soft);border-radius:2px;background:rgba(0,0,0,.18);padding:11px 13px}
 .cluehead{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:var(--muted)}
 .cluehead b{color:var(--cyan);font-weight:600}
-.cluelist{list-style:none;margin:9px 0 0;padding:0;display:flex;flex-direction:column;gap:7px}
-.cluelist li{font-size:13px;line-height:1.55;padding-left:11px;border-left:2px solid var(--line)}
-.cluelist li.got{color:#c3d1da;border-left-color:var(--cyan)}
-.cluelist li.got em{font-style:normal;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--cyan);display:block;margin-bottom:2px}
-.cluelist li.todo{color:#8d7550;border-left-color:var(--amber-deep);border-left-style:dashed}
+.cluelist{list-style:none;margin:9px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:7px}
+.cluelist li{font-size:12.5px;padding:5px 10px;border-radius:2px;border:1px solid var(--line);background:rgba(0,0,0,.15)}
+.cluelist li.got{color:#a9c3bd;border-color:rgba(90,208,192,.35)}
+.cluelist li.got em{font-style:normal;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--cyan);margin-right:6px}
+.cluelist li.todo{color:#8d7550;border-color:var(--line);border-style:dashed}
 .cluelist li.todo em{font-style:normal;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--amber);margin-right:6px}
 .lockhead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .lockhead h3{margin:0;font-size:15px;font-weight:600;color:var(--amber)}
@@ -858,8 +858,9 @@ function renderDetail(){
   return h;
 }
 
-/* 자물쇠가 필요로 하는 단서 현황 — 이미 찾은 것은 그대로 보여주고,
-   못 찾은 것은 내용을 숨긴 채 어느 구역에 있는지만 알려준다 */
+/* 자물쇠가 필요로 하는 단서 현황 — 내용은 절대 다시 보여주지 않는다.
+   찾았는지 여부와 '어느 구역'인지만 알려준다. 실제 값을 조합하는 건
+   수첩을 펼쳐 스스로 기억해내거나 다시 읽어야 하는 몫으로 남겨 둔다. */
 function renderClues(L){
   if(!L.clues || !L.clues.length) return '';
   var have=[], miss=[];
@@ -868,11 +869,8 @@ function renderClues(L){
     (got?have:miss).push(c);
   });
   var h='<div class="cluebox"><div class="cluehead">관련 단서 <b>'+have.length+'</b>/'+L.clues.length+' 확보</div><ul class="cluelist">';
-  have.forEach(function(c){ h+='<li class="got"><em>'+esc(c.z)+'</em>'+esc(c.t)+'</li>'; });
-  var missZones=[]; miss.forEach(function(c){ if(missZones.indexOf(c.z)<0) missZones.push(c.z); });
-  missZones.forEach(function(zn){
-    h+='<li class="todo"><em>미확보</em>'+esc(zn)+'에 더 있다 — 가서 찾아보라</li>';
-  });
+  have.forEach(function(c){ h+='<li class="got"><em>확보</em>'+esc(c.z)+'</li>'; });
+  miss.forEach(function(c){ h+='<li class="todo"><em>미확보</em>'+esc(c.z)+'</li>'; });
   h+='</ul></div>';
   return h;
 }
